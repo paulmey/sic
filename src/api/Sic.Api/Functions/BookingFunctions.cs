@@ -9,6 +9,8 @@ namespace Sic.Api.Functions;
 
 public class BookingFunctions
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+
     private readonly BookingService _bookingService;
     private readonly IBookingRepository _bookingRepo;
 
@@ -46,8 +48,7 @@ public class BookingFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        var body = await JsonSerializer.DeserializeAsync<CreateBookingRequest>(req.Body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var body = await JsonSerializer.DeserializeAsync<CreateBookingRequest>(req.Body, JsonOptions);
         if (body is null)
             return new BadRequestObjectResult(new { error = "Invalid request body." });
 
@@ -56,7 +57,11 @@ public class BookingFunctions
             body.StartTime, body.EndTime);
 
         if (!result.Success)
-            return new ConflictObjectResult(new { error = result.Error });
+        {
+            if (result.Error!.Contains("overlap", StringComparison.OrdinalIgnoreCase))
+                return new ConflictObjectResult(new { error = result.Error });
+            return new BadRequestObjectResult(new { error = result.Error });
+        }
 
         return new CreatedResult($"/api/resources/{resourceId}/bookings/{result.Value!.Id}", result.Value);
     }

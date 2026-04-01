@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { User } from './types';
 import { api } from './api';
 
@@ -21,16 +21,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     setLoading(true);
     setError(null);
     api.getMe()
       .then(setUser)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  };
+  }, []);
 
-  useEffect(refresh, []);
+  useEffect(refresh, [refresh]);
 
   return (
     <AuthContext.Provider value={{ user, loading, error, refresh }}>

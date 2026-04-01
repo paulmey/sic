@@ -1,13 +1,11 @@
 using System.Net;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Linq;
 
 namespace Sic.Cosmos;
 
 public abstract class CosmosRepository
 {
     protected readonly Container _container;
-    protected abstract string TypeName { get; }
 
     protected CosmosRepository(CosmosClient client, string databaseName, string containerName)
     {

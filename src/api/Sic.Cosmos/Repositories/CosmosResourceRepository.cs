@@ -7,8 +7,6 @@ namespace Sic.Cosmos.Repositories;
 
 public class CosmosResourceRepository : CosmosRepository, IResourceRepository
 {
-    protected override string TypeName => "resource";
-
     public CosmosResourceRepository(CosmosClient client, string databaseName, string containerName)
         : base(client, databaseName, containerName) { }
 

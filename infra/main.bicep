@@ -6,17 +6,13 @@ param baseName string = 'sic'
 @description('Azure region')
 param location string = resourceGroup().location
 
-@description('Cosmos DB free tier (one per subscription)')
-param cosmosFreeTier bool = true
-
-// --- Cosmos DB ---
+// --- Cosmos DB (serverless — pay only for what you use, no free tier needed) ---
 resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
   name: '${baseName}-cosmos'
   location: location
   kind: 'GlobalDocumentDB'
   properties: {
     databaseAccountOfferType: 'Standard'
-    enableFreeTier: cosmosFreeTier
     consistencyPolicy: {
       defaultConsistencyLevel: 'Session'
     }

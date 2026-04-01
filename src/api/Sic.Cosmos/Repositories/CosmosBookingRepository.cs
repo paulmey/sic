@@ -7,8 +7,6 @@ namespace Sic.Cosmos.Repositories;
 
 public class CosmosBookingRepository : CosmosRepository, IBookingRepository
 {
-    protected override string TypeName => "booking";
-
     public CosmosBookingRepository(CosmosClient client, string databaseName, string containerName)
         : base(client, databaseName, containerName) { }
 

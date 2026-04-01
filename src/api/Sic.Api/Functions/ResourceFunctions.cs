@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Sic.Core;
 using Sic.Core.Repositories;
 using Sic.Core.Models;
 
@@ -9,11 +10,15 @@ namespace Sic.Api.Functions;
 
 public class ResourceFunctions
 {
-    private readonly IResourceRepository _resourceRepo;
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    public ResourceFunctions(IResourceRepository resourceRepo)
+    private readonly IResourceRepository _resourceRepo;
+    private readonly IUserRepository _userRepo;
+
+    public ResourceFunctions(IResourceRepository resourceRepo, IUserRepository userRepo)
     {
         _resourceRepo = resourceRepo;
+        _userRepo = userRepo;
     }
 
     [Function("GetResources")]
@@ -56,10 +61,11 @@ public class ResourceFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        // TODO: Check resource-admin role
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null || !user.AppRoles.Contains(AppRoles.ResourceAdmin))
+            return new StatusCodeResult(403);
 
-        var body = await JsonSerializer.DeserializeAsync<CreateResourceRequest>(req.Body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var body = await JsonSerializer.DeserializeAsync<CreateResourceRequest>(req.Body, JsonOptions);
         if (body is null || string.IsNullOrWhiteSpace(body.Name))
             return new BadRequestObjectResult(new { error = "Name is required." });
 
@@ -86,14 +92,15 @@ public class ResourceFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        // TODO: Check resource-admin role
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null || !user.AppRoles.Contains(AppRoles.ResourceAdmin))
+            return new StatusCodeResult(403);
 
         var existing = await _resourceRepo.GetByIdAsync(resourceId);
         if (existing is null)
             return new NotFoundResult();
 
-        var body = await JsonSerializer.DeserializeAsync<CreateResourceRequest>(req.Body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var body = await JsonSerializer.DeserializeAsync<CreateResourceRequest>(req.Body, JsonOptions);
         if (body is null || string.IsNullOrWhiteSpace(body.Name))
             return new BadRequestObjectResult(new { error = "Name is required." });
 
@@ -115,7 +122,9 @@ public class ResourceFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        // TODO: Check resource-admin role
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null || !user.AppRoles.Contains(AppRoles.ResourceAdmin))
+            return new StatusCodeResult(403);
 
         await _resourceRepo.DeleteAsync(resourceId);
         return new NoContentResult();

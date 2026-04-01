@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Sic.Core;
 using Sic.Core.Models;
 using Sic.Core.Repositories;
 using Sic.Core.Services;
@@ -10,15 +11,20 @@ namespace Sic.Api.Functions;
 
 public class InviteFunctions
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+
     private readonly InviteService _inviteService;
     private readonly UserService _userService;
     private readonly IInviteLinkRepository _inviteRepo;
+    private readonly IUserRepository _userRepo;
 
-    public InviteFunctions(InviteService inviteService, UserService userService, IInviteLinkRepository inviteRepo)
+    public InviteFunctions(InviteService inviteService, UserService userService,
+        IInviteLinkRepository inviteRepo, IUserRepository userRepo)
     {
         _inviteService = inviteService;
         _userService = userService;
         _inviteRepo = inviteRepo;
+        _userRepo = userRepo;
     }
 
     [Function("CreateInvite")]
@@ -29,10 +35,11 @@ public class InviteFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        // TODO: Check user-admin role
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null || !user.AppRoles.Contains(AppRoles.UserAdmin))
+            return new StatusCodeResult(403);
 
-        var body = await JsonSerializer.DeserializeAsync<CreateInviteRequest>(req.Body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var body = await JsonSerializer.DeserializeAsync<CreateInviteRequest>(req.Body, JsonOptions);
 
         var validityDays = body?.ValidityDays ?? 7;
         var result = await _inviteService.CreateInviteAsync(principal.UserId, TimeSpan.FromDays(validityDays));
@@ -51,8 +58,7 @@ public class InviteFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        var body = await JsonSerializer.DeserializeAsync<RedeemInviteRequest>(req.Body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var body = await JsonSerializer.DeserializeAsync<RedeemInviteRequest>(req.Body, JsonOptions);
         if (body is null || string.IsNullOrWhiteSpace(body.InviteId))
             return new BadRequestObjectResult(new { error = "InviteId is required." });
 
@@ -73,7 +79,9 @@ public class InviteFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        // TODO: Check user-admin role
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null || !user.AppRoles.Contains(AppRoles.UserAdmin))
+            return new StatusCodeResult(403);
 
         var invites = await _inviteRepo.GetActiveAsync();
         return new OkObjectResult(invites);
@@ -88,7 +96,9 @@ public class InviteFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        // TODO: Check user-admin role
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null || !user.AppRoles.Contains(AppRoles.UserAdmin))
+            return new StatusCodeResult(403);
 
         await _inviteRepo.DeleteAsync(inviteId);
 

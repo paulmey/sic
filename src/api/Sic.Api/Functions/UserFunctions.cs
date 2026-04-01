@@ -9,6 +9,8 @@ namespace Sic.Api.Functions;
 
 public class UserFunctions
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+
     private readonly UserService _userService;
     private readonly IUserRepository _userRepo;
 
@@ -43,8 +45,7 @@ public class UserFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        var body = await JsonSerializer.DeserializeAsync<UpdateProfileRequest>(req.Body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var body = await JsonSerializer.DeserializeAsync<UpdateProfileRequest>(req.Body, JsonOptions);
         if (body is null || string.IsNullOrWhiteSpace(body.DisplayName))
             return new BadRequestObjectResult(new { error = "DisplayName is required." });
 

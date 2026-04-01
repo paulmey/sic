@@ -7,8 +7,6 @@ namespace Sic.Cosmos.Repositories;
 
 public class CosmosInviteLinkRepository : CosmosRepository, IInviteLinkRepository
 {
-    protected override string TypeName => "invite";
-
     public CosmosInviteLinkRepository(CosmosClient client, string databaseName, string containerName)
         : base(client, databaseName, containerName) { }
 
@@ -21,7 +19,7 @@ public class CosmosInviteLinkRepository : CosmosRepository, IInviteLinkRepositor
     public async Task<IEnumerable<InviteLink>> GetActiveAsync()
     {
         var query = new QueryDefinition(
-            "SELECT * FROM c WHERE c.type = 'invite' AND c.usedByUserId = null AND c.expiresAt > @now")
+            "SELECT * FROM c WHERE c.type = 'invite' AND NOT IS_DEFINED(c.usedByUserId) AND c.expiresAt > @now")
             .WithParameter("@now", DateTimeOffset.UtcNow);
         var docs = await QueryAsync<InviteLinkDocument>(query);
         return docs.Select(Mapper.ToModel);

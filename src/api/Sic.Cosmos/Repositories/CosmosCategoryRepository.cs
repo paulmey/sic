@@ -7,8 +7,6 @@ namespace Sic.Cosmos.Repositories;
 
 public class CosmosCategoryRepository : CosmosRepository, ICategoryRepository
 {
-    protected override string TypeName => "category";
-
     public CosmosCategoryRepository(CosmosClient client, string databaseName, string containerName)
         : base(client, databaseName, containerName) { }
 

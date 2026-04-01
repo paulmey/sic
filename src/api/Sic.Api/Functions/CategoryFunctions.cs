@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Sic.Core;
 using Sic.Core.Repositories;
 using Sic.Core.Models;
 
@@ -9,11 +10,15 @@ namespace Sic.Api.Functions;
 
 public class CategoryFunctions
 {
-    private readonly ICategoryRepository _categoryRepo;
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    public CategoryFunctions(ICategoryRepository categoryRepo)
+    private readonly ICategoryRepository _categoryRepo;
+    private readonly IUserRepository _userRepo;
+
+    public CategoryFunctions(ICategoryRepository categoryRepo, IUserRepository userRepo)
     {
         _categoryRepo = categoryRepo;
+        _userRepo = userRepo;
     }
 
     [Function("GetCategories")]
@@ -36,10 +41,11 @@ public class CategoryFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        // TODO: Check category-admin role
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null || !user.AppRoles.Contains(AppRoles.CategoryAdmin))
+            return new StatusCodeResult(403);
 
-        var body = await JsonSerializer.DeserializeAsync<CreateCategoryRequest>(req.Body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var body = await JsonSerializer.DeserializeAsync<CreateCategoryRequest>(req.Body, JsonOptions);
         if (body is null || string.IsNullOrWhiteSpace(body.Name))
             return new BadRequestObjectResult(new { error = "Name is required." });
 
@@ -64,14 +70,15 @@ public class CategoryFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        // TODO: Check category-admin role
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null || !user.AppRoles.Contains(AppRoles.CategoryAdmin))
+            return new StatusCodeResult(403);
 
         var existing = await _categoryRepo.GetByIdAsync(categoryId);
         if (existing is null)
             return new NotFoundResult();
 
-        var body = await JsonSerializer.DeserializeAsync<CreateCategoryRequest>(req.Body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var body = await JsonSerializer.DeserializeAsync<CreateCategoryRequest>(req.Body, JsonOptions);
         if (body is null || string.IsNullOrWhiteSpace(body.Name))
             return new BadRequestObjectResult(new { error = "Name is required." });
 
@@ -91,7 +98,9 @@ public class CategoryFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        // TODO: Check category-admin role
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null || !user.AppRoles.Contains(AppRoles.CategoryAdmin))
+            return new StatusCodeResult(403);
 
         await _categoryRepo.DeleteAsync(categoryId);
         return new NoContentResult();

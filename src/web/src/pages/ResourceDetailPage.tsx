@@ -34,8 +34,11 @@ export default function ResourceDetailPage() {
     setLoading(true);
     Promise.all([
       api.getResource(resourceId).then(setResource),
-      (() => { loadBookings(); return Promise.resolve(); })(),
-    ]).finally(() => setLoading(false));
+      api.getBookings(resourceId,
+        new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).toISOString(),
+        new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()).toISOString()
+      ).then(setBookings),
+    ]).catch(console.error).finally(() => setLoading(false));
   }, [resourceId]);
 
   const handleCreateBooking = async (e: React.FormEvent) => {
