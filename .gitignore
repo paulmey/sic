@@ -45,3 +45,5 @@ local.settings.json
 
 # Misc
 *.log
+coveragereport/
+TestResults/
