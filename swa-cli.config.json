@@ -1,0 +1,14 @@
+{
+  "$schema": "https://aka.ms/azure/static-web-apps-cli/schema",
+  "configurations": {
+    "sic": {
+      "appLocation": "src/web",
+      "outputLocation": "dist",
+      "apiLocation": "src/api/Sic.Api",
+      "appBuildCommand": "npm run build",
+      "apiBuildCommand": "dotnet build",
+      "run": "npm run dev",
+      "appDevserverUrl": "http://localhost:5173"
+    }
+  }
+}
