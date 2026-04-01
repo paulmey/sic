@@ -101,4 +101,47 @@ public class InviteServiceTests
         Assert.True(result.Success);
         await _inviteRepo.Received(1).UpdateAsync(Arg.Is<InviteLink>(i => i.UsedByUserId == "new-user-1"));
     }
+
+    [Fact]
+    public async Task RedeemInvite_NotFound_Fails()
+    {
+        _inviteRepo.GetByIdAsync("inv-missing").Returns((InviteLink?)null);
+
+        var result = await _sut.RedeemInviteAsync("inv-missing", "user-1");
+
+        Assert.False(result.Success);
+        Assert.Contains("not found", result.Error!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task RedeemInvite_Expired_Fails()
+    {
+        var invite = new InviteLink
+        {
+            Id = "inv-1", CreatedByUserId = "admin-1",
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(-1), UsedByUserId = null
+        };
+        _inviteRepo.GetByIdAsync("inv-1").Returns(invite);
+
+        var result = await _sut.RedeemInviteAsync("inv-1", "user-1");
+
+        Assert.False(result.Success);
+        Assert.Contains("expired", result.Error!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task RedeemInvite_AlreadyUsed_Fails()
+    {
+        var invite = new InviteLink
+        {
+            Id = "inv-1", CreatedByUserId = "admin-1",
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(1), UsedByUserId = "someone"
+        };
+        _inviteRepo.GetByIdAsync("inv-1").Returns(invite);
+
+        var result = await _sut.RedeemInviteAsync("inv-1", "user-1");
+
+        Assert.False(result.Success);
+        Assert.Contains("used", result.Error!, StringComparison.OrdinalIgnoreCase);
+    }
 }

@@ -130,4 +130,61 @@ public class BookingFunctionsTests
 
         Assert.IsType<OkObjectResult>(result);
     }
+
+    // --- DeleteBooking ---
+
+    [Fact]
+    public async Task DeleteBooking_WithoutAuth_Returns401()
+    {
+        var req = TestHelper.CreateAnonymousRequest();
+
+        var result = await _sut.DeleteBooking(req, ResourceId, "b1");
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task DeleteBooking_Valid_Returns204()
+    {
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = "user-1" };
+        _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
+        _roleRepo.GetByResourceAndUserAsync(ResourceId, "user-1")
+            .Returns(new ResourceRole { ResourceId = ResourceId, UserId = "user-1", Role = "user" });
+        var req = TestHelper.CreateRequest();
+
+        var result = await _sut.DeleteBooking(req, ResourceId, "b1");
+
+        Assert.IsType<NoContentResult>(result);
+    }
+
+    [Fact]
+    public async Task DeleteBooking_NotFound_Returns400()
+    {
+        _bookingRepo.GetByIdAsync(ResourceId, "b-missing").Returns((Booking?)null);
+        var req = TestHelper.CreateRequest();
+
+        var result = await _sut.DeleteBooking(req, ResourceId, "b-missing");
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task CreateBooking_MissingRequiredFields_Returns400()
+    {
+        var req = TestHelper.CreateRequest(body: new { });
+
+        var result = await _sut.CreateBooking(req, ResourceId);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task GetBookings_WithoutAuth_Returns401()
+    {
+        var req = TestHelper.CreateAnonymousRequest();
+
+        var result = await _sut.GetBookings(req, ResourceId);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
 }

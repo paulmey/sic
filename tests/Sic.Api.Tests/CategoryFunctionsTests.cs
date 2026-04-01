@@ -111,4 +111,77 @@ public class CategoryFunctionsTests
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
+
+    // --- GetCategories ---
+
+    [Fact]
+    public async Task GetCategories_WithoutAuth_Returns401()
+    {
+        var req = TestHelper.CreateAnonymousRequest();
+
+        var result = await _sut.GetCategories(req);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    // --- UpdateCategory ---
+
+    [Fact]
+    public async Task UpdateCategory_WithoutAuth_Returns401()
+    {
+        var req = TestHelper.CreateAnonymousRequest();
+
+        var result = await _sut.UpdateCategory(req, "cat-1");
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task UpdateCategory_WithoutAdminRole_Returns403()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-2").Returns(_regularUser);
+        var req = TestHelper.CreateRequest(userId: "user-2", body: new { name = "Updated" });
+
+        var result = await _sut.UpdateCategory(req, "cat-1");
+
+        Assert.IsType<StatusCodeResult>(result);
+        Assert.Equal(403, ((StatusCodeResult)result).StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateCategory_NotFound_Returns404()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
+        _categoryRepo.GetByIdAsync("cat-missing").Returns((Category?)null);
+        var req = TestHelper.CreateRequest(body: new { name = "Updated" });
+
+        var result = await _sut.UpdateCategory(req, "cat-missing");
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task UpdateCategory_Valid_Returns200()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
+        _categoryRepo.GetByIdAsync("cat-1").Returns(new Category { Id = "cat-1", Name = "Old" });
+        var req = TestHelper.CreateRequest(body: new { name = "New Name" });
+
+        var result = await _sut.UpdateCategory(req, "cat-1");
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        await _categoryRepo.Received(1).UpdateAsync(Arg.Is<Category>(c => c.Name == "New Name"));
+    }
+
+    [Fact]
+    public async Task UpdateCategory_MissingName_Returns400()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
+        _categoryRepo.GetByIdAsync("cat-1").Returns(new Category { Id = "cat-1", Name = "Old" });
+        var req = TestHelper.CreateRequest(body: new { name = "" });
+
+        var result = await _sut.UpdateCategory(req, "cat-1");
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
 }

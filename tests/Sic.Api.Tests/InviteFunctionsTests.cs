@@ -93,4 +93,65 @@ public class InviteFunctionsTests
 
         Assert.IsType<UnauthorizedResult>(result);
     }
+
+    [Fact]
+    public async Task CreateInvite_WithoutAuth_Returns401()
+    {
+        var req = TestHelper.CreateAnonymousRequest();
+
+        var result = await _sut.CreateInvite(req);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task GetInvites_WithAdminRole_Returns200()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
+        _inviteRepo.GetActiveAsync().Returns(new List<InviteLink>());
+        var req = TestHelper.CreateRequest();
+
+        var result = await _sut.GetInvites(req);
+
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task DeleteInvite_WithAdminRole_Returns204()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
+        var req = TestHelper.CreateRequest();
+
+        var result = await _sut.DeleteInvite(req, "inv-1");
+
+        Assert.IsType<NoContentResult>(result);
+        await _inviteRepo.Received(1).DeleteAsync("inv-1");
+    }
+
+    [Fact]
+    public async Task RedeemInvite_MissingInviteId_Returns400()
+    {
+        var req = TestHelper.CreateRequest(body: new { inviteId = "" });
+
+        var result = await _sut.RedeemInvite(req);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task RedeemInvite_ValidInvite_Returns200()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns((User?)null);
+        var invite = new InviteLink
+        {
+            Id = "inv-1", CreatedByUserId = "admin-1",
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(1), UsedByUserId = null
+        };
+        _inviteRepo.GetByIdAsync("inv-1").Returns(invite);
+        var req = TestHelper.CreateRequest(body: new { inviteId = "inv-1" });
+
+        var result = await _sut.RedeemInvite(req);
+
+        Assert.IsType<OkObjectResult>(result);
+    }
 }

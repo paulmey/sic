@@ -80,4 +80,67 @@ public class UserServiceTests
         await _userRepo.Received(1).CreateAsync(Arg.Is<User>(u => u.AppRoles.Count == 0));
         await _inviteRepo.Received(1).UpdateAsync(Arg.Is<InviteLink>(i => i.UsedByUserId != null));
     }
+
+    [Fact]
+    public async Task AuthenticateOrCreateWithInvite_InviteNotFound_Fails()
+    {
+        _userRepo.GetByIdentityAsync("google", "g-456").Returns((User?)null);
+        _inviteRepo.GetByIdAsync("inv-missing").Returns((InviteLink?)null);
+
+        var result = await _sut.AuthenticateOrCreateWithInviteAsync("google", "g-456", "Jane", "inv-missing");
+
+        Assert.False(result.Success);
+        Assert.Contains("not found", result.Error!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task AuthenticateOrCreateWithInvite_ExpiredInvite_Fails()
+    {
+        _userRepo.GetByIdentityAsync("google", "g-456").Returns((User?)null);
+        var invite = new InviteLink
+        {
+            Id = "inv-1", CreatedByUserId = "admin-1",
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(-1), UsedByUserId = null
+        };
+        _inviteRepo.GetByIdAsync("inv-1").Returns(invite);
+
+        var result = await _sut.AuthenticateOrCreateWithInviteAsync("google", "g-456", "Jane", "inv-1");
+
+        Assert.False(result.Success);
+        Assert.Contains("expired", result.Error!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task AuthenticateOrCreateWithInvite_UsedInvite_Fails()
+    {
+        _userRepo.GetByIdentityAsync("google", "g-456").Returns((User?)null);
+        var invite = new InviteLink
+        {
+            Id = "inv-1", CreatedByUserId = "admin-1",
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(1), UsedByUserId = "someone"
+        };
+        _inviteRepo.GetByIdAsync("inv-1").Returns(invite);
+
+        var result = await _sut.AuthenticateOrCreateWithInviteAsync("google", "g-456", "Jane", "inv-1");
+
+        Assert.False(result.Success);
+        Assert.Contains("used", result.Error!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task AuthenticateOrCreateWithInvite_ExistingUser_ReturnsWithoutCreating()
+    {
+        var existing = new User
+        {
+            Id = "u1", IdentityProvider = "google", IdentityId = "g-456",
+            DisplayName = "Jane"
+        };
+        _userRepo.GetByIdentityAsync("google", "g-456").Returns(existing);
+
+        var result = await _sut.AuthenticateOrCreateWithInviteAsync("google", "g-456", "Jane", "inv-1");
+
+        Assert.True(result.Success);
+        Assert.Equal("u1", result.Value!.Id);
+        await _userRepo.DidNotReceive().CreateAsync(Arg.Any<User>());
+    }
 }
