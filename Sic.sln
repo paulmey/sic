@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{49A7B3F9-C601-46A1-9122-227149661B50}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{3EB7620B-4693-43F3-9673-A63A1D80D557}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sic.Core", "src\api\Sic.Core\Sic.Core.csproj", "{F4B08B49-0D35-4D82-BBF1-9F9C32CB4A2B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{83AF31A0-1F86-45AA-9FA9-AFE6D8EF904A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sic.Core.Tests", "tests\Sic.Core.Tests\Sic.Core.Tests.csproj", "{B3422C4A-B737-4ABA-A9B8-AC13298FA290}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F4B08B49-0D35-4D82-BBF1-9F9C32CB4A2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4B08B49-0D35-4D82-BBF1-9F9C32CB4A2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4B08B49-0D35-4D82-BBF1-9F9C32CB4A2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4B08B49-0D35-4D82-BBF1-9F9C32CB4A2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3422C4A-B737-4ABA-A9B8-AC13298FA290}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3422C4A-B737-4ABA-A9B8-AC13298FA290}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3422C4A-B737-4ABA-A9B8-AC13298FA290}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3422C4A-B737-4ABA-A9B8-AC13298FA290}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3EB7620B-4693-43F3-9673-A63A1D80D557} = {49A7B3F9-C601-46A1-9122-227149661B50}
+		{F4B08B49-0D35-4D82-BBF1-9F9C32CB4A2B} = {3EB7620B-4693-43F3-9673-A63A1D80D557}
+		{B3422C4A-B737-4ABA-A9B8-AC13298FA290} = {83AF31A0-1F86-45AA-9FA9-AFE6D8EF904A}
+	EndGlobalSection
+EndGlobal
