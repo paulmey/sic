@@ -50,3 +50,116 @@ Sharing is caring is reservation system for shared resources (apartments, spaces
 - (Meeting) room booking
 - Tool/equipment sharing
 - Boat booking for rowing clubs
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19 + TypeScript + Vite |
+| Backend | C# / .NET 8 (Azure Functions, isolated worker) |
+| Database | Azure Cosmos DB (serverless) |
+| Auth | Azure Static Web Apps built-in OAuth (Microsoft + Google) |
+| Hosting | Azure Static Web Apps (free tier) |
+| IaC | Bicep |
+| CI/CD | GitHub Actions |
+
+## Prerequisites
+
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Node.js 20+](https://nodejs.org/)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
+- [Azure Static Web Apps CLI](https://github.com/Azure/static-web-apps-cli): `npm install -g @azure/static-web-apps-cli`
+- [Azure Cosmos DB Emulator](https://learn.microsoft.com/azure/cosmos-db/local-emulator) (for local development)
+
+## Local Development
+
+1. **Start the Cosmos DB Emulator** (or use a cloud Cosmos DB instance).
+
+2. **Create the database and container** in the emulator:
+   - Database: `sic`
+   - Container: `sic-data` with partition key `/pk`
+
+3. **Restore and build:**
+   ```bash
+   dotnet restore Sic.sln
+   dotnet build Sic.sln
+   cd src/web && npm install
+   ```
+
+4. **Run locally with SWA CLI:**
+   ```bash
+   swa start
+   ```
+   This starts the Vite dev server, the Azure Functions API, and the SWA proxy (with auth emulation) wired together. The app will be available at `http://localhost:4280`.
+
+5. **Run tests:**
+   ```bash
+   dotnet test Sic.sln
+   ```
+
+## Deploy to Azure
+
+### 1. Create the infrastructure
+
+```bash
+az login
+az group create --name sic-rg --location westeurope
+az deployment group create \
+  --resource-group sic-rg \
+  --template-file infra/main.bicep \
+  --parameters infra/main.bicepparam
+```
+
+This creates:
+- A Cosmos DB serverless account with the `sic` database and `sic-data` container
+- An Azure Static Web App (free tier)
+- App settings linking the Cosmos DB connection string to the SWA
+
+### 2. Get the SWA deployment token
+
+```bash
+az staticwebapp secrets list --name sic-swa --resource-group sic-rg --query "properties.apiKey" -o tsv
+```
+
+### 3. Configure GitHub Actions
+
+Add the token as a repository secret named `AZURE_STATIC_WEB_APPS_API_TOKEN` in your GitHub repo settings (Settings > Secrets and variables > Actions).
+
+### 4. Push to deploy
+
+Pushing to `master` triggers the CI/CD pipeline which:
+1. Builds and tests the .NET backend
+2. Builds the React frontend
+3. Deploys both to Azure Static Web Apps
+
+Pull requests run the build and test steps without deploying.
+
+### 5. Configure authentication providers
+
+In the Azure portal, go to your Static Web App > Settings > Identity:
+- Enable **Microsoft** (Azure AD) and/or **Google** as identity providers
+- No additional configuration is needed — SWA handles the OAuth flow
+
+## Project Structure
+
+```
+├── src/
+│   ├── api/
+│   │   ├── Sic.Core/          # Domain models, services, repository interfaces
+│   │   ├── Sic.Api/           # Azure Functions HTTP endpoints
+│   │   └── Sic.Cosmos/        # Cosmos DB repository implementations
+│   └── web/                   # React + Vite frontend
+├── tests/
+│   ├── Sic.Core.Tests/        # Service-layer unit tests
+│   └── Sic.Api.Tests/         # API-layer unit tests
+├── infra/                     # Bicep templates
+├── .github/workflows/         # CI/CD pipeline
+└── DESIGN.md                  # Detailed design document
+```
+
+## Cost Estimate
+
+Running on Azure free/serverless tiers:
+- **Static Web Apps**: Free tier (100 GB bandwidth, custom domains, SSL)
+- **Cosmos DB**: Serverless (~$0.25 per million RU, pay only for requests)
+- **Estimated monthly cost for <100 users**: Under $1/month
