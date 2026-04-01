@@ -1,8 +1,8 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Sic.Core.Repositories;
 using Sic.Core.Services;
+using Sic.Cosmos;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
@@ -12,10 +12,9 @@ var host = new HostBuilder()
         services.AddScoped<UserService>();
         services.AddScoped<InviteService>();
 
-        // TODO: Register repository implementations when Cosmos DB layer is added
-        // services.AddScoped<IBookingRepository, CosmosBookingRepository>();
-        // services.AddScoped<IUserRepository, CosmosUserRepository>();
-        // etc.
+        var cosmosConnection = Environment.GetEnvironmentVariable("CosmosDbConnectionString")
+            ?? throw new InvalidOperationException("CosmosDbConnectionString is not configured.");
+        services.AddCosmosRepositories(cosmosConnection);
     })
     .Build();
 

@@ -15,5 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sic.Core\Sic.Core.csproj" />
+    <ProjectReference Include="..\Sic.Cosmos\Sic.Cosmos.csproj" />
   </ItemGroup>
 </Project>
