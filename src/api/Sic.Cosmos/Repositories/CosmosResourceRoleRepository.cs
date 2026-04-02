@@ -19,6 +19,15 @@ public class CosmosResourceRoleRepository : CosmosRepository, IResourceRoleRepos
         return docs.Select(Mapper.ToModel);
     }
 
+    public async Task<IEnumerable<ResourceRole>> GetByUserAsync(string userId)
+    {
+        var query = new QueryDefinition(
+            "SELECT * FROM c WHERE c.type = 'resource-role' AND c.userId = @uid")
+            .WithParameter("@uid", userId);
+        var docs = await QueryAsync<ResourceRoleDocument>(query);
+        return docs.Select(Mapper.ToModel);
+    }
+
     public async Task<ResourceRole?> GetByResourceAndUserAsync(string resourceId, string userId)
     {
         var query = new QueryDefinition(

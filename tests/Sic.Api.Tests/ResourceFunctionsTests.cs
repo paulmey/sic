@@ -10,6 +10,7 @@ namespace Sic.Api.Tests;
 public class ResourceFunctionsTests
 {
     private readonly IResourceRepository _resourceRepo = Substitute.For<IResourceRepository>();
+    private readonly IResourceRoleRepository _roleRepo = Substitute.For<IResourceRoleRepository>();
     private readonly IUserRepository _userRepo = Substitute.For<IUserRepository>();
     private readonly ResourceFunctions _sut;
 
@@ -27,7 +28,7 @@ public class ResourceFunctionsTests
 
     public ResourceFunctionsTests()
     {
-        _sut = new ResourceFunctions(_resourceRepo, _userRepo);
+        _sut = new ResourceFunctions(_resourceRepo, _roleRepo, _userRepo);
     }
 
     // --- GetResources ---
@@ -41,20 +42,77 @@ public class ResourceFunctionsTests
     }
 
     [Fact]
-    public async Task GetResources_Authenticated_ReturnsAll()
+    public async Task GetResources_Authenticated_ResourceAdmin_ReturnsAll()
     {
-        var resources = new List<Resource> { new() { Id = "r1", Name = "Room A" } };
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
+        var resources = new List<Resource> { new() { Id = "r1", Name = "Room A" }, new() { Id = "r2", Name = "Room B" } };
         _resourceRepo.GetAllAsync().Returns(resources);
         var req = TestHelper.CreateRequest();
 
         var result = await _sut.GetResources(req);
 
-        Assert.IsType<OkObjectResult>(result);
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var items = Assert.IsAssignableFrom<IEnumerable<Resource>>(ok.Value);
+        Assert.Equal(2, items.Count());
+    }
+
+    [Fact]
+    public async Task GetResources_RegularUser_ReturnsOnlyAssignedResources()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-2").Returns(_regularUser);
+        var resources = new List<Resource>
+        {
+            new() { Id = "r1", Name = "Room A" },
+            new() { Id = "r2", Name = "Room B" },
+            new() { Id = "r3", Name = "Room C" }
+        };
+        _resourceRepo.GetAllAsync().Returns(resources);
+        _roleRepo.GetByUserAsync("u2").Returns(new List<ResourceRole>
+        {
+            new() { Id = "rr1", ResourceId = "r1", UserId = "u2", Role = "user" },
+            new() { Id = "rr3", ResourceId = "r3", UserId = "u2", Role = "manager" }
+        });
+        var req = TestHelper.CreateRequest(userId: "user-2");
+
+        var result = await _sut.GetResources(req);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var items = Assert.IsAssignableFrom<IEnumerable<Resource>>(ok.Value).ToList();
+        Assert.Equal(2, items.Count);
+        Assert.Contains(items, r => r.Id == "r1");
+        Assert.Contains(items, r => r.Id == "r3");
+    }
+
+    [Fact]
+    public async Task GetResources_RegularUser_NoRoles_ReturnsEmpty()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-2").Returns(_regularUser);
+        _resourceRepo.GetAllAsync().Returns(new List<Resource> { new() { Id = "r1", Name = "Room A" } });
+        _roleRepo.GetByUserAsync("u2").Returns(new List<ResourceRole>());
+        var req = TestHelper.CreateRequest(userId: "user-2");
+
+        var result = await _sut.GetResources(req);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var items = Assert.IsAssignableFrom<IEnumerable<Resource>>(ok.Value);
+        Assert.Empty(items);
+    }
+
+    [Fact]
+    public async Task GetResources_UnknownUser_Returns401()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns((User?)null);
+        var req = TestHelper.CreateRequest();
+
+        var result = await _sut.GetResources(req);
+
+        Assert.IsType<UnauthorizedResult>(result);
     }
 
     [Fact]
     public async Task GetResources_WithCategoryFilter_FiltersByCategory()
     {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
         var resources = new List<Resource> { new() { Id = "r1", Name = "Room A", CategoryId = "cat-1" } };
         _resourceRepo.GetByCategoryAsync("cat-1").Returns(resources);
         var req = TestHelper.CreateRequest(queryParams: new Dictionary<string, string> { ["categoryId"] = "cat-1" });
@@ -79,6 +137,7 @@ public class ResourceFunctionsTests
     [Fact]
     public async Task GetResource_NotFound_Returns404()
     {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
         _resourceRepo.GetByIdAsync("r-missing").Returns((Resource?)null);
         var req = TestHelper.CreateRequest();
 
@@ -88,14 +147,41 @@ public class ResourceFunctionsTests
     }
 
     [Fact]
-    public async Task GetResource_Found_Returns200()
+    public async Task GetResource_ResourceAdmin_Returns200()
     {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
         _resourceRepo.GetByIdAsync("r1").Returns(new Resource { Id = "r1", Name = "Room A" });
         var req = TestHelper.CreateRequest();
 
         var result = await _sut.GetResource(req, "r1");
 
         Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task GetResource_UserWithRole_Returns200()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-2").Returns(_regularUser);
+        _resourceRepo.GetByIdAsync("r1").Returns(new Resource { Id = "r1", Name = "Room A" });
+        _roleRepo.GetByResourceAndUserAsync("r1", "u2").Returns(new ResourceRole { Id = "rr1", ResourceId = "r1", UserId = "u2", Role = "user" });
+        var req = TestHelper.CreateRequest(userId: "user-2");
+
+        var result = await _sut.GetResource(req, "r1");
+
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task GetResource_UserWithoutRole_Returns404()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-2").Returns(_regularUser);
+        _resourceRepo.GetByIdAsync("r1").Returns(new Resource { Id = "r1", Name = "Room A" });
+        _roleRepo.GetByResourceAndUserAsync("r1", "u2").Returns((ResourceRole?)null);
+        var req = TestHelper.CreateRequest(userId: "user-2");
+
+        var result = await _sut.GetResource(req, "r1");
+
+        Assert.IsType<NotFoundResult>(result);
     }
 
     // --- CreateResource ---

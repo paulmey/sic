@@ -13,11 +13,13 @@ public class ResourceFunctions
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     private readonly IResourceRepository _resourceRepo;
+    private readonly IResourceRoleRepository _roleRepo;
     private readonly IUserRepository _userRepo;
 
-    public ResourceFunctions(IResourceRepository resourceRepo, IUserRepository userRepo)
+    public ResourceFunctions(IResourceRepository resourceRepo, IResourceRoleRepository roleRepo, IUserRepository userRepo)
     {
         _resourceRepo = resourceRepo;
+        _roleRepo = roleRepo;
         _userRepo = userRepo;
     }
 
@@ -29,10 +31,22 @@ public class ResourceFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null)
+            return new UnauthorizedResult();
+
         var categoryId = req.Query["categoryId"].FirstOrDefault();
         var resources = string.IsNullOrEmpty(categoryId)
             ? await _resourceRepo.GetAllAsync()
             : await _resourceRepo.GetByCategoryAsync(categoryId);
+
+        // Resource admins see all resources; regular users only see resources they have roles on
+        if (!user.AppRoles.Contains(AppRoles.ResourceAdmin))
+        {
+            var roles = await _roleRepo.GetByUserAsync(user.Id);
+            var allowedResourceIds = new HashSet<string>(roles.Select(r => r.ResourceId));
+            resources = resources.Where(r => allowedResourceIds.Contains(r.Id));
+        }
 
         return new OkObjectResult(resources);
     }
@@ -46,9 +60,20 @@ public class ResourceFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null)
+            return new UnauthorizedResult();
+
         var resource = await _resourceRepo.GetByIdAsync(resourceId);
         if (resource is null)
             return new NotFoundResult();
+
+        if (!user.AppRoles.Contains(AppRoles.ResourceAdmin))
+        {
+            var role = await _roleRepo.GetByResourceAndUserAsync(resourceId, user.Id);
+            if (role is null)
+                return new NotFoundResult();
+        }
 
         return new OkObjectResult(resource);
     }
