@@ -31,7 +31,7 @@ public class UserService
             Id = Guid.NewGuid().ToString(),
             IdentityProvider = identityProvider,
             IdentityId = identityId,
-            DisplayName = displayName,
+            DisplayName = DeriveDisplayName(displayName),
             AppRoles = new List<string>(AppRoles.All),
             CreatedAt = DateTimeOffset.UtcNow
         };
@@ -62,7 +62,7 @@ public class UserService
             Id = Guid.NewGuid().ToString(),
             IdentityProvider = identityProvider,
             IdentityId = identityId,
-            DisplayName = displayName,
+            DisplayName = DeriveDisplayName(displayName),
             AppRoles = new List<string>(),
             CreatedAt = DateTimeOffset.UtcNow
         };
@@ -73,5 +73,14 @@ public class UserService
         await _inviteRepo.UpdateAsync(invite);
 
         return ServiceResult<User>.Ok(user);
+    }
+
+    private static string DeriveDisplayName(string userDetails)
+    {
+        if (string.IsNullOrWhiteSpace(userDetails))
+            return "User";
+
+        var atIndex = userDetails.IndexOf('@');
+        return atIndex > 0 ? userDetails[..atIndex] : userDetails;
     }
 }

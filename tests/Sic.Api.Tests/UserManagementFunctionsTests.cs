@@ -109,6 +109,17 @@ public class UserManagementFunctionsTests
         Assert.IsType<BadRequestObjectResult>(result);
     }
 
+    [Fact]
+    public async Task UpdateUser_CannotRemoveOwnUserAdmin_Returns400()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
+        _userRepo.GetByIdAsync("u1").Returns(_adminUser);
+        var req = TestHelper.CreateRequest(body: new { appRoles = new[] { "resource-admin" } });
+        var result = await _sut.UpdateUser(req, "u1");
+        Assert.IsType<BadRequestObjectResult>(result);
+        await _userRepo.DidNotReceive().UpdateAsync(Arg.Any<User>());
+    }
+
     // --- DeleteUser ---
 
     [Fact]

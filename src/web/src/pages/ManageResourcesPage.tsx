@@ -9,6 +9,7 @@ export default function ManageResourcesPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
@@ -24,13 +25,14 @@ export default function ManageResourcesPage() {
     setError('');
     try {
       if (editingId) {
-        await api.updateResource(editingId, { name, categoryId, description });
+        await api.updateResource(editingId, { name, categoryId, description, imageUrl });
       } else {
-        await api.createResource({ name, categoryId, description });
+        await api.createResource({ name, categoryId, description, imageUrl });
       }
       setName('');
       setDescription('');
       setCategoryId('');
+      setImageUrl('');
       setEditingId(null);
       load();
     } catch (err: unknown) {
@@ -43,6 +45,7 @@ export default function ManageResourcesPage() {
     setName(res.name);
     setDescription(res.description);
     setCategoryId(res.categoryId);
+    setImageUrl(res.imageUrl ?? '');
   };
 
   const cancelEdit = () => {
@@ -50,6 +53,7 @@ export default function ManageResourcesPage() {
     setName('');
     setDescription('');
     setCategoryId('');
+    setImageUrl('');
   };
 
   const handleDelete = async (id: string) => {
@@ -72,6 +76,7 @@ export default function ManageResourcesPage() {
       <form onSubmit={handleSubmit} className="admin-form">
         <input value={name} onChange={e => setName(e.target.value)} placeholder="Resource name" required />
         <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" />
+        <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="Image URL" />
         <select value={categoryId} onChange={e => setCategoryId(e.target.value)}>
           <option value="">No category</option>
           {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}

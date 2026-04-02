@@ -8,6 +8,8 @@ const ALL_ROLES = ['user-admin', 'category-admin', 'resource-admin'];
 export default function ManageUsersPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
   const [error, setError] = useState('');
 
   const load = () => {
@@ -25,6 +27,22 @@ export default function ManageUsersPage() {
       load();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to update roles');
+    }
+  };
+
+  const startEditName = (u: User) => {
+    setEditingId(u.id);
+    setEditName(u.displayName);
+  };
+
+  const saveEditName = async (u: User) => {
+    if (!editName.trim()) return;
+    try {
+      await api.updateUser(u.id, { displayName: editName.trim() });
+      setEditingId(null);
+      load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update name');
     }
   };
 
@@ -55,7 +73,24 @@ export default function ManageUsersPage() {
         <tbody>
           {users.map(u => (
             <tr key={u.id}>
-              <td>{u.displayName}</td>
+              <td>
+                {editingId === u.id ? (
+                  <>
+                    <input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && saveEditName(u)}
+                      autoFocus
+                    />
+                    <button onClick={() => saveEditName(u)}>Save</button>
+                    <button onClick={() => setEditingId(null)}>Cancel</button>
+                  </>
+                ) : (
+                  <span onClick={() => startEditName(u)} style={{ cursor: 'pointer' }} title="Click to edit">
+                    {u.displayName}
+                  </span>
+                )}
+              </td>
               <td>{u.identityProvider}</td>
               {ALL_ROLES.map(role => (
                 <td key={role}>
@@ -63,6 +98,7 @@ export default function ManageUsersPage() {
                     type="checkbox"
                     checked={u.appRoles.includes(role)}
                     onChange={() => toggleRole(u, role)}
+                    disabled={u.id === currentUser?.id && role === 'user-admin' && u.appRoles.includes(role)}
                   />
                 </td>
               ))}

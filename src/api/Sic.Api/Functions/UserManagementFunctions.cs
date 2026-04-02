@@ -64,6 +64,14 @@ public class UserManagementFunctions
                 if (!AppRoles.All.Contains(role))
                     return new BadRequestObjectResult(new { error = $"Invalid role: {role}" });
             }
+
+            if (callingUser.Id == targetUser.Id
+                && callingUser.AppRoles.Contains(AppRoles.UserAdmin)
+                && !body.AppRoles.Contains(AppRoles.UserAdmin))
+            {
+                return new BadRequestObjectResult(new { error = "You cannot remove your own user-admin role." });
+            }
+
             targetUser.AppRoles = body.AppRoles;
         }
 

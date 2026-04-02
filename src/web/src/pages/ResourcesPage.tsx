@@ -23,7 +23,6 @@ export default function ResourcesPage() {
 
   return (
     <div className="resources-page">
-      <h2>Resources</h2>
 
       {categories.length > 0 && (
         <div className="category-filter">
@@ -54,6 +53,7 @@ export default function ResourcesPage() {
         <div className="resource-grid">
           {resources.map((r) => (
             <Link to={`/resources/${r.id}`} key={r.id} className="resource-card">
+              {r.imageUrl && <img src={r.imageUrl} alt={r.name} className="resource-image" />}
               <h3>{r.name}</h3>
               {r.description && <p>{r.description}</p>}
             </Link>
