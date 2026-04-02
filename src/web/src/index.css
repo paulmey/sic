@@ -23,7 +23,7 @@ a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 /* Buttons */
-button {
+button, .btn {
   display: inline-block;
   padding: 0.5rem 1rem;
   background: var(--surface);
@@ -34,7 +34,7 @@ button {
   font-size: 0.875rem;
   line-height: 1.4;
 }
-button:hover { background: var(--bg); }
+button:hover, .btn:hover { background: var(--bg); }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn, button[type="submit"], .btn-primary {
@@ -262,17 +262,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   font-weight: 500;
   gap: 0.25rem;
 }
-.admin-form button {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 0.875rem;
-  background: var(--primary);
-  color: white;
-}
-.admin-form button[type="button"] { background: var(--surface); color: var(--text); border-color: var(--border); }
-.admin-form button[type="button"]:hover { background: var(--bg); }
+
 
 .admin-table {
   width: 100%;
