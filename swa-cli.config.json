@@ -8,7 +8,9 @@
       "appBuildCommand": "npm run build",
       "apiBuildCommand": "dotnet build",
       "run": "npm run dev",
-      "appDevserverUrl": "http://localhost:5173"
+      "appDevserverUrl": "http://localhost:5173",
+      "appName": "sic-swa",
+      "resourceGroup": "sic-test-neu"
     }
   }
 }

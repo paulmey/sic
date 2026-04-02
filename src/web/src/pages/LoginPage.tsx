@@ -10,7 +10,7 @@ export default function LoginPage() {
       {error && <p className="error">{error}</p>}
       <div className="login-buttons">
         <a href="/.auth/login/aad" className="btn">Sign in with Microsoft</a>
-        <a href="/.auth/login/google" className="btn">Sign in with Google</a>
+        <a href="/.auth/login/github" className="btn">Sign in with GitHub</a>
       </div>
     </div>
   );

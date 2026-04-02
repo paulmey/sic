@@ -5,7 +5,7 @@ Sharing is caring is reservation system for shared resources (apartments, spaces
 - Registered users can reserve/book a resource for an arbitrary amount of time, can be multi-day down to the minute.
 - The system prevents overlap between reservations.
 - Users can see eachothers reservations for a space
-- The system uses existing identity providers (microsoft personal accounts and google in v1) instead of storing credentials.
+- The system uses existing identity providers (Microsoft, GitHub) instead of storing credentials.
 - The system is web based
 - Works great on mobile
 - Costs very little to run on a cloud platform
@@ -58,7 +58,7 @@ Sharing is caring is reservation system for shared resources (apartments, spaces
 | Frontend | React 19 + TypeScript + Vite |
 | Backend | C# / .NET 8 (Azure Functions, isolated worker) |
 | Database | Azure Cosmos DB (serverless) |
-| Auth | Azure Static Web Apps built-in OAuth (Microsoft + Google) |
+| Auth | Azure Static Web Apps built-in OAuth (Microsoft + GitHub) |
 | Hosting | Azure Static Web Apps (free tier) |
 | IaC | Bicep |
 | CI/CD | GitHub Actions |
@@ -137,8 +137,9 @@ Pull requests run the build and test steps without deploying.
 ### 5. Configure authentication providers
 
 In the Azure portal, go to your Static Web App > Settings > Identity:
-- Enable **Microsoft** (Azure AD) and/or **Google** as identity providers
-- No additional configuration is needed — SWA handles the OAuth flow
+- Enable **Microsoft** (Azure AD) and/or **GitHub** as identity providers
+- No additional configuration is needed — SWA handles the OAuth flow on the free tier
+- Google and custom OIDC providers require the Standard plan ($9/month)
 
 ## Project Structure
 
