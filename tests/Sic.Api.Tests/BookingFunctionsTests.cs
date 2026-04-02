@@ -288,4 +288,71 @@ public class BookingFunctionsTests
 
         Assert.IsType<ConflictObjectResult>(result);
     }
+
+    // --- No resource role denial tests ---
+
+    [Fact]
+    public async Task CreateBooking_WithoutResourceRole_Returns400()
+    {
+        _roleRepo.GetByResourceAndUserAsync(ResourceId, "u1")
+            .Returns((ResourceRole?)null);
+
+        var start = DateTimeOffset.UtcNow.AddHours(1);
+        var req = TestHelper.CreateRequest(body: new
+        {
+            title = "Test",
+            description = "",
+            startTime = start,
+            endTime = start.AddHours(1)
+        });
+
+        var result = await _sut.CreateBooking(req, ResourceId);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task UpdateBooking_WithoutResourceRole_Returns400()
+    {
+        var existing = new Booking
+        {
+            Id = "b1", ResourceId = ResourceId, UserId = "u1",
+            Title = "Old", Description = "", StartTime = DateTimeOffset.UtcNow.AddHours(1),
+            EndTime = DateTimeOffset.UtcNow.AddHours(2)
+        };
+        _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(existing);
+        _roleRepo.GetByResourceAndUserAsync(ResourceId, "u1")
+            .Returns((ResourceRole?)null);
+
+        var start = DateTimeOffset.UtcNow.AddHours(3);
+        var req = TestHelper.CreateRequest(body: new
+        {
+            title = "Updated",
+            description = "",
+            startTime = start,
+            endTime = start.AddHours(1)
+        });
+
+        var result = await _sut.UpdateBooking(req, ResourceId, "b1");
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task DeleteBooking_WithoutResourceRole_Returns400()
+    {
+        var booking = new Booking
+        {
+            Id = "b1", ResourceId = ResourceId, UserId = "u1",
+            EndTime = DateTimeOffset.UtcNow.AddDays(1)
+        };
+        _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
+        _roleRepo.GetByResourceAndUserAsync(ResourceId, "u1")
+            .Returns((ResourceRole?)null);
+        var req = TestHelper.CreateRequest();
+
+        var result = await _sut.DeleteBooking(req, ResourceId, "b1");
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
 }

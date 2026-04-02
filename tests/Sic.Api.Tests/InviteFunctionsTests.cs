@@ -60,6 +60,16 @@ public class InviteFunctionsTests
     }
 
     [Fact]
+    public async Task GetInvites_WithoutAuth_Returns401()
+    {
+        var req = TestHelper.CreateAnonymousRequest();
+
+        var result = await _sut.GetInvites(req);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
     public async Task GetInvites_WithoutAdminRole_Returns403()
     {
         _userRepo.GetByIdentityAsync("microsoft", "user-2").Returns(_regularUser);
@@ -69,6 +79,16 @@ public class InviteFunctionsTests
 
         Assert.IsType<StatusCodeResult>(result);
         Assert.Equal(403, ((StatusCodeResult)result).StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteInvite_WithoutAuth_Returns401()
+    {
+        var req = TestHelper.CreateAnonymousRequest();
+
+        var result = await _sut.DeleteInvite(req, "inv-1");
+
+        Assert.IsType<UnauthorizedResult>(result);
     }
 
     [Fact]

@@ -129,6 +129,16 @@ public class ResourceRoleFunctionsTests
     }
 
     [Fact]
+    public async Task UpdateResourceRole_WithoutAdmin_Returns403()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-2").Returns(_regularUser);
+        var req = TestHelper.CreateRequest(userId: "user-2", body: new { role = "manager" });
+        var result = await _sut.UpdateResourceRole(req, "r1", "u3");
+        Assert.IsType<StatusCodeResult>(result);
+        Assert.Equal(403, ((StatusCodeResult)result).StatusCode);
+    }
+
+    [Fact]
     public async Task UpdateResourceRole_NotFound_Returns404()
     {
         _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
@@ -167,6 +177,16 @@ public class ResourceRoleFunctionsTests
         var req = TestHelper.CreateAnonymousRequest();
         var result = await _sut.DeleteResourceRole(req, "r1", "u3");
         Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task DeleteResourceRole_WithoutAdmin_Returns403()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-2").Returns(_regularUser);
+        var req = TestHelper.CreateRequest(userId: "user-2");
+        var result = await _sut.DeleteResourceRole(req, "r1", "u3");
+        Assert.IsType<StatusCodeResult>(result);
+        Assert.Equal(403, ((StatusCodeResult)result).StatusCode);
     }
 
     [Fact]

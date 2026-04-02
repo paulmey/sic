@@ -65,6 +65,16 @@ public class CategoryFunctionsTests
     }
 
     [Fact]
+    public async Task DeleteCategory_WithoutAuth_Returns401()
+    {
+        var req = TestHelper.CreateAnonymousRequest();
+
+        var result = await _sut.DeleteCategory(req, "cat-1");
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
     public async Task DeleteCategory_WithoutAdminRole_Returns403()
     {
         _userRepo.GetByIdentityAsync("microsoft", "user-2").Returns(_regularUser);
