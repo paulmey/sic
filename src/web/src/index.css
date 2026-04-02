@@ -193,8 +193,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 .booking-item.past { opacity: 0.5; }
 .booking-time { display: block; font-size: 0.8rem; color: var(--text-muted); }
-.booking-toggle { cursor: pointer; margin-left: 0.5rem; color: var(--text-muted); user-select: none; }
-.booking-toggle:hover { color: var(--text); }
+.booking-toggle { cursor: pointer; margin-left: 0.25rem; color: var(--text-muted); user-select: none; display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: var(--radius); font-size: 1rem; }
+.booking-toggle:hover { color: var(--text); background: var(--bg); }
 .booking-description { margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-muted); white-space: pre-wrap; }
 .booking-owner { font-size: 0.8rem; color: var(--text-muted); }
 
