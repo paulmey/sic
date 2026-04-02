@@ -108,16 +108,42 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .resource-image { width: 100%; height: 140px; object-fit: cover; border-radius: var(--radius); margin-bottom: 0.5rem; }
 .resource-detail-image { max-width: 400px; width: 100%; height: auto; border-radius: var(--radius); margin-bottom: 1rem; }
 
+/* Booking modal */
+.booking-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border: none;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+.booking-modal-backdrop:not([open]) { display: none; }
+.booking-modal {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+.booking-modal h3 { margin-top: 0; }
+
 /* Booking form */
+.booking-form .optional { font-weight: 400; color: #888; font-size: 0.8rem; }
 .booking-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
 }
 .booking-form label { display: flex; flex-direction: column; font-size: 0.875rem; font-weight: 500; }
-.booking-form label:first-child,
-.booking-form label:nth-child(2) { grid-column: span 2; }
+.booking-form label:nth-child(-n+2) { grid-column: span 2; }
 .booking-form input, .booking-form textarea {
   margin-top: 0.25rem;
   padding: 0.5rem;
@@ -126,7 +152,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   font-size: 0.875rem;
 }
 .booking-form textarea { resize: vertical; min-height: 60px; }
-.booking-form button { grid-column: span 2; }
+.booking-form-actions { grid-column: span 2; display: flex; gap: 0.5rem; }
+.booking-form-actions button { flex: 1; }
 
 /* Booking list */
 .bookings-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
@@ -249,7 +276,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 600px) {
   .booking-form { grid-template-columns: 1fr; }
-  .booking-form label:first-child,
-  .booking-form label:nth-child(2),
-  .booking-form button { grid-column: 1; }
+  .booking-form label:nth-child(-n+2),
+  .booking-form-actions { grid-column: 1; }
 }

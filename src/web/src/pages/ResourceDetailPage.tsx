@@ -16,11 +16,14 @@ export default function ResourceDetailPage() {
   // Booking form
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [endTime, setEndTime] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set());
 
@@ -73,9 +76,12 @@ export default function ResourceDetailPage() {
   const resetForm = () => {
     setTitle('');
     setDescription('');
+    setStartDate('');
     setStartTime('');
+    setEndDate('');
     setEndTime('');
     setEditingBookingId(null);
+    setShowModal(false);
   };
 
   const handleSubmitBooking = async (e: React.FormEvent) => {
@@ -87,8 +93,8 @@ export default function ResourceDetailPage() {
       const data = {
         title,
         description,
-        startTime: new Date(startTime).toISOString(),
-        endTime: new Date(endTime).toISOString(),
+        startTime: new Date(`${startDate}T${startTime || '00:00'}`).toISOString(),
+        endTime: new Date(`${endDate}T${endTime || '23:59'}`).toISOString(),
       };
       if (editingBookingId) {
         await api.updateBooking(resourceId, editingBookingId, data);
@@ -104,20 +110,25 @@ export default function ResourceDetailPage() {
     }
   };
 
-  const toLocalDateTimeString = (iso: string) => {
+  const toLocalParts = (iso: string) => {
     const d = new Date(iso);
     const offset = d.getTimezoneOffset();
     const local = new Date(d.getTime() - offset * 60000);
-    return local.toISOString().slice(0, 16);
+    return { date: local.toISOString().slice(0, 10), time: local.toISOString().slice(11, 16) };
   };
 
   const handleEdit = (booking: Booking) => {
     setEditingBookingId(booking.id);
     setTitle(booking.title);
     setDescription(booking.description ?? '');
-    setStartTime(toLocalDateTimeString(booking.startTime));
-    setEndTime(toLocalDateTimeString(booking.endTime));
+    const start = toLocalParts(booking.startTime);
+    setStartDate(start.date);
+    setStartTime(start.time);
+    const end = toLocalParts(booking.endTime);
+    setEndDate(end.date);
+    setEndTime(end.time);
     setError('');
+    setShowModal(true);
   };
 
   const handleDelete = async (bookingId: string) => {
@@ -139,41 +150,56 @@ export default function ResourceDetailPage() {
       {resource.imageUrl && <img src={resource.imageUrl} alt={resource.name} className="resource-detail-image" />}
       {resource.description && <p>{resource.description}</p>}
 
-      <h3>{editingBookingId ? 'Edit Booking' : 'New Booking'}</h3>
-      {error && <p className="error">{error}</p>}
-      <form onSubmit={handleSubmitBooking} className="booking-form">
-        <label>
-          Title
-          <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={30} required />
-        </label>
-        <label>
-          Description
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} />
-        </label>
-        <label>
-          Start
-          <input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
-        </label>
-        <label>
-          End
-          <input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
-        </label>
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Saving...' : editingBookingId ? 'Update' : 'Book'}
-        </button>
-        {editingBookingId && (
-          <button type="button" onClick={resetForm}>Cancel Edit</button>
-        )}
-      </form>
+      <dialog open={showModal} className="booking-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) resetForm(); }}>
+        <div className="booking-modal">
+          <h3>{editingBookingId ? 'Edit Booking' : 'New Booking'}</h3>
+          {error && <p className="error">{error}</p>}
+          <form onSubmit={handleSubmitBooking} className="booking-form">
+            <label>
+              Title
+              <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={30} required />
+            </label>
+            <label>
+              Description
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} />
+            </label>
+            <label>
+              Start date
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+            </label>
+            <label>
+              Start time <span className="optional">(optional)</span>
+              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} step="1800" placeholder="00:00" />
+            </label>
+            <label>
+              End date
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+            </label>
+            <label>
+              End time <span className="optional">(optional)</span>
+              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} step="1800" placeholder="23:59" />
+            </label>
+            <div className="booking-form-actions">
+              <button type="submit" disabled={submitting}>
+                {submitting ? 'Saving...' : editingBookingId ? 'Update' : 'Book'}
+              </button>
+              <button type="button" onClick={resetForm}>Cancel</button>
+            </div>
+          </form>
+        </div>
+      </dialog>
 
       <div className="bookings-header">
         <h3>{showAll ? 'All Bookings' : 'Bookings (next 12 months)'}</h3>
-        <button
-          className={showAll ? 'active' : ''}
-          onClick={() => { const next = !showAll; setShowAll(next); loadBookings(next); }}
-        >
-          {showAll ? 'Next 12 months' : 'Show all'}
-        </button>
+        <div>
+          <button onClick={() => { setShowModal(true); setError(''); }}>New Booking</button>
+          <button
+            className={showAll ? 'active' : ''}
+            onClick={() => { const next = !showAll; setShowAll(next); loadBookings(next); }}
+          >
+            {showAll ? 'Next 12 months' : 'Show all'}
+          </button>
+        </div>
       </div>
       {bookings.length === 0 ? (
         <p>No bookings for this period.</p>
