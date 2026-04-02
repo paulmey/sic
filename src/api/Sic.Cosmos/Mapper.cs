@@ -72,12 +72,12 @@ internal static class Mapper
     public static InviteLinkDocument ToDocument(InviteLink i) => new()
     {
         Id = i.Id, Pk = $"invite:{i.Id}", Type = "invite",
-        CreatedByUserId = i.CreatedByUserId, ExpiresAt = i.ExpiresAt,
-        UsedByUserId = i.UsedByUserId, CreatedAt = i.CreatedAt
+        CreatedByUserId = i.CreatedByUserId, ResourceId = i.ResourceId,
+        ExpiresAt = i.ExpiresAt, UsedByUserId = i.UsedByUserId, CreatedAt = i.CreatedAt
     };
     public static InviteLink ToModel(InviteLinkDocument d) => new()
     {
-        Id = d.Id, CreatedByUserId = d.CreatedByUserId, ExpiresAt = d.ExpiresAt,
-        UsedByUserId = d.UsedByUserId, CreatedAt = d.CreatedAt
+        Id = d.Id, CreatedByUserId = d.CreatedByUserId, ResourceId = d.ResourceId,
+        ExpiresAt = d.ExpiresAt, UsedByUserId = d.UsedByUserId, CreatedAt = d.CreatedAt
     };
 }

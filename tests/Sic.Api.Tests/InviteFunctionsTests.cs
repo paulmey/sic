@@ -12,6 +12,7 @@ public class InviteFunctionsTests
 {
     private readonly IInviteLinkRepository _inviteRepo = Substitute.For<IInviteLinkRepository>();
     private readonly IUserRepository _userRepo = Substitute.For<IUserRepository>();
+    private readonly IResourceRoleRepository _roleRepo = Substitute.For<IResourceRoleRepository>();
     private readonly InviteService _inviteService;
     private readonly UserService _userService;
     private readonly InviteFunctions _sut;
@@ -31,7 +32,7 @@ public class InviteFunctionsTests
     public InviteFunctionsTests()
     {
         _inviteService = new InviteService(_inviteRepo);
-        _userService = new UserService(_userRepo, _inviteRepo);
+        _userService = new UserService(_userRepo, _inviteRepo, _roleRepo);
         _sut = new InviteFunctions(_inviteService, _userService, _inviteRepo, _userRepo);
     }
 
@@ -57,6 +58,34 @@ public class InviteFunctionsTests
 
         Assert.IsType<CreatedResult>(result);
         await _inviteRepo.Received(1).CreateAsync(Arg.Any<InviteLink>());
+    }
+
+    [Fact]
+    public async Task CreateInvite_WithResourceId_WithoutResourceAdmin_Returns403()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
+        var req = TestHelper.CreateRequest(body: new { validityDays = 7, resourceId = "res-1" });
+
+        var result = await _sut.CreateInvite(req);
+
+        Assert.IsType<StatusCodeResult>(result);
+        Assert.Equal(403, ((StatusCodeResult)result).StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateInvite_WithResourceId_WithResourceAdmin_Returns201()
+    {
+        var adminWithResource = new User
+        {
+            Id = "u1", IdentityProvider = "microsoft", IdentityId = "user-1",
+            DisplayName = "Admin", AppRoles = new List<string> { AppRoles.UserAdmin, AppRoles.ResourceAdmin }
+        };
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(adminWithResource);
+        var req = TestHelper.CreateRequest(body: new { validityDays = 7, resourceId = "res-1" });
+
+        var result = await _sut.CreateInvite(req);
+
+        Assert.IsType<CreatedResult>(result);
     }
 
     [Fact]

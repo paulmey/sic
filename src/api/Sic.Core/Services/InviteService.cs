@@ -12,12 +12,15 @@ public class InviteService
         _inviteRepo = inviteRepo;
     }
 
-    public async Task<ServiceResult<InviteLink>> CreateInviteAsync(string createdByUserId, TimeSpan validity)
+    public async Task<ServiceResult<InviteLink>> CreateInviteAsync(string createdByUserId, TimeSpan validity, string? resourceId = null)
     {
+        var normalizedResourceId = string.IsNullOrWhiteSpace(resourceId) ? null : resourceId.Trim();
+
         var invite = new InviteLink
         {
             Id = Guid.NewGuid().ToString(),
             CreatedByUserId = createdByUserId,
+            ResourceId = normalizedResourceId,
             ExpiresAt = DateTimeOffset.UtcNow.Add(validity),
             UsedByUserId = null,
             CreatedAt = DateTimeOffset.UtcNow

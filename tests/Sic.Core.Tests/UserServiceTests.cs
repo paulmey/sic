@@ -9,11 +9,12 @@ public class UserServiceTests
 {
     private readonly IUserRepository _userRepo = Substitute.For<IUserRepository>();
     private readonly IInviteLinkRepository _inviteRepo = Substitute.For<IInviteLinkRepository>();
+    private readonly IResourceRoleRepository _roleRepo = Substitute.For<IResourceRoleRepository>();
     private readonly UserService _sut;
 
     public UserServiceTests()
     {
-        _sut = new UserService(_userRepo, _inviteRepo);
+        _sut = new UserService(_userRepo, _inviteRepo, _roleRepo);
     }
 
     [Fact]
@@ -142,5 +143,42 @@ public class UserServiceTests
         Assert.True(result.Success);
         Assert.Equal("u1", result.Value!.Id);
         await _userRepo.DidNotReceive().CreateAsync(Arg.Any<User>());
+    }
+
+    [Fact]
+    public async Task AuthenticateOrCreateWithInvite_WithResourceId_CreatesResourceRole()
+    {
+        _userRepo.GetByIdentityAsync("google", "g-456").Returns((User?)null);
+
+        var invite = new InviteLink
+        {
+            Id = "inv-1", CreatedByUserId = "admin-1", ResourceId = "res-1",
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(1), UsedByUserId = null
+        };
+        _inviteRepo.GetByIdAsync("inv-1").Returns(invite);
+
+        var result = await _sut.AuthenticateOrCreateWithInviteAsync("google", "g-456", "Jane", "inv-1");
+
+        Assert.True(result.Success);
+        await _roleRepo.Received(1).CreateAsync(Arg.Is<ResourceRole>(r =>
+            r.ResourceId == "res-1" && r.UserId == result.Value!.Id && r.Role == ResourceRoles.User));
+    }
+
+    [Fact]
+    public async Task AuthenticateOrCreateWithInvite_WithoutResourceId_NoResourceRole()
+    {
+        _userRepo.GetByIdentityAsync("google", "g-456").Returns((User?)null);
+
+        var invite = new InviteLink
+        {
+            Id = "inv-1", CreatedByUserId = "admin-1", ResourceId = null,
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(1), UsedByUserId = null
+        };
+        _inviteRepo.GetByIdAsync("inv-1").Returns(invite);
+
+        var result = await _sut.AuthenticateOrCreateWithInviteAsync("google", "g-456", "Jane", "inv-1");
+
+        Assert.True(result.Success);
+        await _roleRepo.DidNotReceive().CreateAsync(Arg.Any<ResourceRole>());
     }
 }
