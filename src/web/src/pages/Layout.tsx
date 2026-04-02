@@ -10,6 +10,9 @@ export default function Layout() {
         <Link to="/" className="logo">sic</Link>
         <nav>
           <Link to="/">Resources</Link>
+          {user && user.appRoles.length > 0 && (
+            <Link to="/admin">Admin</Link>
+          )}
           {user && (
             <>
               <span className="user-name">{user.displayName}</span>

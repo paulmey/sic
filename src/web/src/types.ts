@@ -41,3 +41,10 @@ export interface InviteLink {
   usedByUserId: string | null;
   createdAt: string;
 }
+
+export interface ResourceRole {
+  id: string;
+  resourceId: string;
+  userId: string;
+  role: string;
+}

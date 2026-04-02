@@ -1,4 +1,4 @@
-import type { User, Category, Resource, Booking, InviteLink } from './types';
+import type { User, Category, Resource, Booking, InviteLink, ResourceRole } from './types';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {};
@@ -57,4 +57,21 @@ export const api = {
     request<void>(`/api/invites/${id}`, { method: 'DELETE' }),
   redeemInvite: (inviteId: string) =>
     request<User>('/api/invite/redeem', { method: 'POST', body: JSON.stringify({ inviteId }) }),
+
+  // Resource Roles
+  getResourceRoles: (resourceId: string) =>
+    request<ResourceRole[]>(`/api/resources/${resourceId}/roles`),
+  createResourceRole: (resourceId: string, data: { userId: string; role: string }) =>
+    request<ResourceRole>(`/api/resources/${resourceId}/roles`, { method: 'POST', body: JSON.stringify(data) }),
+  updateResourceRole: (resourceId: string, userId: string, data: { role: string }) =>
+    request<ResourceRole>(`/api/resources/${resourceId}/roles/${userId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteResourceRole: (resourceId: string, userId: string) =>
+    request<void>(`/api/resources/${resourceId}/roles/${userId}`, { method: 'DELETE' }),
+
+  // User Management
+  getUsers: () => request<User[]>('/api/users'),
+  updateUser: (id: string, data: { displayName?: string; appRoles?: string[] }) =>
+    request<User>(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteUser: (id: string) =>
+    request<void>(`/api/users/${id}`, { method: 'DELETE' }),
 };

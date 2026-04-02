@@ -8,8 +8,7 @@ flowchart TD
     AuthCheck -->|No| Login[Login Page]
     AuthCheck -->|Yes| Resources[Resources Page]
 
-    Login -->|Sign in with Microsoft| AuthCheck
-    Login -->|Sign in with GitHub| AuthCheck
+    Login -->|Sign in| AuthCheck
 
     Resources -->|Select resource| Detail[Resource Detail Page]
     Resources -->|Click Admin| Admin[Admin Panel]

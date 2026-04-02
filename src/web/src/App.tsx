@@ -4,6 +4,12 @@ import Layout from './pages/Layout';
 import LoginPage from './pages/LoginPage';
 import ResourcesPage from './pages/ResourcesPage';
 import ResourceDetailPage from './pages/ResourceDetailPage';
+import AdminPage from './pages/AdminPage';
+import ManageCategoriesPage from './pages/ManageCategoriesPage';
+import ManageResourcesPage from './pages/ManageResourcesPage';
+import ResourceRolesPage from './pages/ResourceRolesPage';
+import ManageUsersPage from './pages/ManageUsersPage';
+import ManageInvitesPage from './pages/ManageInvitesPage';
 import './App.css';
 
 function AppRoutes() {
@@ -17,6 +23,12 @@ function AppRoutes() {
       <Route element={<Layout />}>
         <Route index element={<ResourcesPage />} />
         <Route path="resources/:resourceId" element={<ResourceDetailPage />} />
+        <Route path="admin" element={<AdminPage />} />
+        <Route path="admin/categories" element={<ManageCategoriesPage />} />
+        <Route path="admin/resources" element={<ManageResourcesPage />} />
+        <Route path="admin/resources/:resourceId/roles" element={<ResourceRolesPage />} />
+        <Route path="admin/users" element={<ManageUsersPage />} />
+        <Route path="admin/invites" element={<ManageInvitesPage />} />
       </Route>
     </Routes>
   );

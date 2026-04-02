@@ -35,6 +35,12 @@ public class CosmosResourceRoleRepository : CosmosRepository, IResourceRoleRepos
         await _container.CreateItemAsync(doc, new PartitionKey(doc.Pk));
     }
 
+    public async Task UpdateAsync(ResourceRole role)
+    {
+        var doc = Mapper.ToDocument(role);
+        await _container.ReplaceItemAsync(doc, doc.Id, new PartitionKey(doc.Pk));
+    }
+
     public async Task DeleteAsync(string resourceId, string userId)
     {
         // Find the document first to get the id
