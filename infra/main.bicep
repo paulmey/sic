@@ -3,8 +3,14 @@ targetScope = 'resourceGroup'
 @description('Base name for all resources')
 param baseName string = 'sic'
 
-@description('Azure region')
+@description('Azure region for Cosmos DB and other resources')
 param location string = resourceGroup().location
+
+@description('Azure region for Static Web App (limited region availability)')
+param swaLocation string = 'westeurope'
+
+@description('Enable Cosmos DB free tier discount (only one per subscription)')
+param cosmosFreeTier bool = true
 
 // --- Cosmos DB (serverless — pay only for what you use, no free tier needed) ---
 resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
@@ -12,6 +18,7 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
   location: location
   kind: 'GlobalDocumentDB'
   properties: {
+    enableFreeTier: cosmosFreeTier
     databaseAccountOfferType: 'Standard'
     consistencyPolicy: {
       defaultConsistencyLevel: 'Session'
@@ -19,6 +26,7 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
     locations: [
       {
         locationName: location
+        isZoneRedundant: false
         failoverPriority: 0
       }
     ]
@@ -74,7 +82,7 @@ resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/con
 // --- Static Web App ---
 resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
   name: '${baseName}-swa'
-  location: location
+  location: swaLocation
   sku: {
     name: 'Free'
     tier: 'Free'
