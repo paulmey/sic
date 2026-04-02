@@ -38,6 +38,7 @@ export interface Booking {
 export interface InviteLink {
   id: string;
   createdByUserId: string;
+  resourceId: string | null;
   expiresAt: string;
   usedByUserId: string | null;
   createdAt: string;

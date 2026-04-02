@@ -11,12 +11,13 @@ public class UserFunctionsTests
 {
     private readonly IUserRepository _userRepo = Substitute.For<IUserRepository>();
     private readonly IInviteLinkRepository _inviteRepo = Substitute.For<IInviteLinkRepository>();
+    private readonly IResourceRoleRepository _roleRepo = Substitute.For<IResourceRoleRepository>();
     private readonly UserService _userService;
     private readonly UserFunctions _sut;
 
     public UserFunctionsTests()
     {
-        _userService = new UserService(_userRepo, _inviteRepo);
+        _userService = new UserService(_userRepo, _inviteRepo, _roleRepo);
         _sut = new UserFunctions(_userService, _userRepo);
     }
 

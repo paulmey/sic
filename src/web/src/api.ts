@@ -55,8 +55,8 @@ export const api = {
 
   // Invites
   getInvites: () => request<InviteLink[]>('/api/invites'),
-  createInvite: (validityDays?: number) =>
-    request<InviteLink>('/api/invites', { method: 'POST', body: JSON.stringify({ validityDays }) }),
+  createInvite: (validityDays?: number, resourceId?: string) =>
+    request<InviteLink>('/api/invites', { method: 'POST', body: JSON.stringify({ validityDays, resourceId }) }),
   deleteInvite: (id: string) =>
     request<void>(`/api/invites/${id}`, { method: 'DELETE' }),
   redeemInvite: (inviteId: string) =>

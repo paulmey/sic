@@ -7,11 +7,13 @@ public class UserService
 {
     private readonly IUserRepository _userRepo;
     private readonly IInviteLinkRepository _inviteRepo;
+    private readonly IResourceRoleRepository _roleRepo;
 
-    public UserService(IUserRepository userRepo, IInviteLinkRepository inviteRepo)
+    public UserService(IUserRepository userRepo, IInviteLinkRepository inviteRepo, IResourceRoleRepository roleRepo)
     {
         _userRepo = userRepo;
         _inviteRepo = inviteRepo;
+        _roleRepo = roleRepo;
     }
 
     public async Task<ServiceResult<User>> AuthenticateOrCreateAsync(
@@ -71,6 +73,18 @@ public class UserService
 
         invite.UsedByUserId = user.Id;
         await _inviteRepo.UpdateAsync(invite);
+
+        if (!string.IsNullOrEmpty(invite.ResourceId))
+        {
+            var role = new ResourceRole
+            {
+                Id = Guid.NewGuid().ToString(),
+                ResourceId = invite.ResourceId,
+                UserId = user.Id,
+                Role = "user"
+            };
+            await _roleRepo.CreateAsync(role);
+        }
 
         return ServiceResult<User>.Ok(user);
     }

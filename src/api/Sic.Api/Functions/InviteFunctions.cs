@@ -42,7 +42,7 @@ public class InviteFunctions
         var body = await JsonSerializer.DeserializeAsync<CreateInviteRequest>(req.Body, JsonOptions);
 
         var validityDays = body?.ValidityDays ?? 7;
-        var result = await _inviteService.CreateInviteAsync(principal.UserId, TimeSpan.FromDays(validityDays));
+        var result = await _inviteService.CreateInviteAsync(principal.UserId, TimeSpan.FromDays(validityDays), body?.ResourceId);
 
         if (!result.Success)
             return new BadRequestObjectResult(new { error = result.Error });
@@ -106,5 +106,5 @@ public class InviteFunctions
     }
 }
 
-public record CreateInviteRequest(int? ValidityDays);
+public record CreateInviteRequest(int? ValidityDays, string? ResourceId);
 public record RedeemInviteRequest(string? InviteId);

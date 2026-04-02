@@ -12,6 +12,7 @@ public class InviteFunctionsTests
 {
     private readonly IInviteLinkRepository _inviteRepo = Substitute.For<IInviteLinkRepository>();
     private readonly IUserRepository _userRepo = Substitute.For<IUserRepository>();
+    private readonly IResourceRoleRepository _roleRepo = Substitute.For<IResourceRoleRepository>();
     private readonly InviteService _inviteService;
     private readonly UserService _userService;
     private readonly InviteFunctions _sut;
@@ -31,7 +32,7 @@ public class InviteFunctionsTests
     public InviteFunctionsTests()
     {
         _inviteService = new InviteService(_inviteRepo);
-        _userService = new UserService(_userRepo, _inviteRepo);
+        _userService = new UserService(_userRepo, _inviteRepo, _roleRepo);
         _sut = new InviteFunctions(_inviteService, _userService, _inviteRepo, _userRepo);
     }
 

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import type { InviteLink } from '../types';
+import type { InviteLink, Resource } from '../types';
 
 export default function ManageInvitesPage() {
   const [invites, setInvites] = useState<InviteLink[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
   const [validityDays, setValidityDays] = useState(7);
+  const [selectedResourceId, setSelectedResourceId] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
@@ -12,13 +14,16 @@ export default function ManageInvitesPage() {
     api.getInvites().then(setInvites).catch(e => setError(e.message));
   };
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+    api.getResources().then(setResources).catch(console.error);
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
-      await api.createInvite(validityDays);
+      await api.createInvite(validityDays, selectedResourceId || undefined);
       load();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create invite');
@@ -44,6 +49,11 @@ export default function ManageInvitesPage() {
 
   const formatDate = (iso: string) => new Date(iso).toLocaleDateString();
 
+  const getResourceName = (id: string | null) => {
+    if (!id) return '—';
+    return resources.find(r => r.id === id)?.name ?? id.substring(0, 8);
+  };
+
   return (
     <div className="admin-section">
       <h2>Manage Invites</h2>
@@ -60,17 +70,27 @@ export default function ManageInvitesPage() {
             max={90}
           />
         </label>
+        <label>
+          Grant access to resource
+          <select value={selectedResourceId} onChange={e => setSelectedResourceId(e.target.value)}>
+            <option value="">None</option>
+            {resources.map(r => (
+              <option key={r.id} value={r.id}>{r.name}</option>
+            ))}
+          </select>
+        </label>
         <button type="submit">Create Invite</button>
       </form>
 
       <table className="admin-table">
         <thead>
-          <tr><th>Invite ID</th><th>Expires</th><th>Status</th><th>Actions</th></tr>
+          <tr><th>Invite ID</th><th>Resource</th><th>Expires</th><th>Status</th><th>Actions</th></tr>
         </thead>
         <tbody>
           {invites.map(inv => (
             <tr key={inv.id}>
               <td className="monospace">{inv.id.substring(0, 8)}...</td>
+              <td>{getResourceName(inv.resourceId)}</td>
               <td>{formatDate(inv.expiresAt)}</td>
               <td>{inv.usedByUserId ? 'Used' : 'Active'}</td>
               <td>
@@ -85,7 +105,7 @@ export default function ManageInvitesPage() {
               </td>
             </tr>
           ))}
-          {invites.length === 0 && <tr><td colSpan={4}>No invites.</td></tr>}
+          {invites.length === 0 && <tr><td colSpan={5}>No invites.</td></tr>}
         </tbody>
       </table>
     </div>
