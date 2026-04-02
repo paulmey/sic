@@ -276,8 +276,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 .admin-table th { font-weight: 600; background: var(--bg); }
 .admin-table td button {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
   margin-right: 0.25rem;
 }
 .admin-table td select {

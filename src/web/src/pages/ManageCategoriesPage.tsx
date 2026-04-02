@@ -77,8 +77,8 @@ export default function ManageCategoriesPage() {
               <td>{cat.icon}</td>
               <td>{cat.name}</td>
               <td>
-                <button onClick={() => startEdit(cat)}>Edit</button>
-                <button onClick={() => handleDelete(cat.id)} className="btn-danger">Delete</button>
+                <button className="btn-sm" onClick={() => startEdit(cat)}>Edit</button>
+                <button className="btn-sm btn-danger" onClick={() => handleDelete(cat.id)}>Delete</button>
               </td>
             </tr>
           ))}

@@ -97,9 +97,9 @@ export default function ManageResourcesPage() {
               <td>{getCategoryName(res.categoryId)}</td>
               <td>{res.description}</td>
               <td>
-                <button onClick={() => startEdit(res)}>Edit</button>
-                <button onClick={() => navigate(`/admin/resources/${res.id}/roles`)}>Roles</button>
-                <button onClick={() => handleDelete(res.id)} className="btn-danger">Delete</button>
+                <button className="btn-sm" onClick={() => startEdit(res)}>Edit</button>
+                <button className="btn-sm" onClick={() => navigate(`/admin/resources/${res.id}/roles`)}>Roles</button>
+                <button className="btn-sm btn-danger" onClick={() => handleDelete(res.id)}>Delete</button>
               </td>
             </tr>
           ))}
