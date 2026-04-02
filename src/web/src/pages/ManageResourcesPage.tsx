@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import type { Category, Resource } from '../types';
 
 export default function ManageResourcesPage() {
+  const navigate = useNavigate();
   const [resources, setResources] = useState<Resource[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState('');
@@ -96,9 +97,9 @@ export default function ManageResourcesPage() {
               <td>{getCategoryName(res.categoryId)}</td>
               <td>{res.description}</td>
               <td>
-                <button onClick={() => startEdit(res)}>Edit</button>
-                <Link to={`/admin/resources/${res.id}/roles`}><button>Roles</button></Link>
-                <button onClick={() => handleDelete(res.id)} className="danger">Delete</button>
+                <button className="btn-sm" onClick={() => startEdit(res)}>Edit</button>
+                <button className="btn-sm" onClick={() => navigate(`/admin/resources/${res.id}/roles`)}>Roles</button>
+                <button className="btn-sm btn-danger" onClick={() => handleDelete(res.id)}>Delete</button>
               </td>
             </tr>
           ))}

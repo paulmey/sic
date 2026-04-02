@@ -82,8 +82,8 @@ export default function ManageUsersPage() {
                       onKeyDown={(e) => e.key === 'Enter' && saveEditName(u)}
                       autoFocus
                     />
-                    <button onClick={() => saveEditName(u)}>Save</button>
-                    <button onClick={() => setEditingId(null)}>Cancel</button>
+                    <button className="btn-sm" onClick={() => saveEditName(u)}>Save</button>
+                    <button className="btn-sm" onClick={() => setEditingId(null)}>Cancel</button>
                   </>
                 ) : (
                   <span onClick={() => startEditName(u)} style={{ cursor: 'pointer' }} title="Click to edit">
@@ -104,7 +104,7 @@ export default function ManageUsersPage() {
               ))}
               <td>
                 {u.id !== currentUser?.id && (
-                  <button onClick={() => handleDelete(u.id)} className="danger">Delete</button>
+                  <button className="btn-sm btn-danger" onClick={() => handleDelete(u.id)}>Delete</button>
                 )}
               </td>
             </tr>

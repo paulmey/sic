@@ -22,21 +22,43 @@ body {
 a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-.btn, button[type="submit"] {
+/* Buttons */
+button, .btn {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background: var(--primary);
-  color: white;
-  border: none;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
   font-size: 0.875rem;
+  line-height: 1.4;
 }
-.btn:hover, button[type="submit"]:hover {
+button:hover, .btn:hover { background: var(--bg); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn, button[type="submit"], .btn-primary {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.btn:hover, button[type="submit"]:hover, .btn-primary:hover {
   background: var(--primary-hover);
+  border-color: var(--primary-hover);
   text-decoration: none;
 }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-danger {
+  background: none;
+  border-color: var(--error);
+  color: var(--error);
+}
+.btn-danger:hover { background: var(--error); color: white; }
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
 
 .error { color: var(--error); margin: 0.5rem 0; }
 
@@ -171,18 +193,32 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 .booking-item.past { opacity: 0.5; }
 .booking-time { display: block; font-size: 0.8rem; color: var(--text-muted); }
-.btn-delete {
-  background: none;
-  border: 1px solid var(--error);
-  color: var(--error);
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-.btn-delete:hover { background: var(--error); color: white; }
+.booking-toggle { cursor: pointer; margin-left: 0.25rem; color: var(--text-muted); user-select: none; display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: var(--radius); font-size: 1.5rem; }
+.booking-toggle:hover { color: var(--text); background: var(--bg); }
+.booking-description { margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-muted); white-space: pre-wrap; }
+.booking-owner { font-size: 0.8rem; color: var(--text-muted); }
 
 .loading { text-align: center; padding: 2rem; color: var(--text-muted); }
+
+/* Profile */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 400px;
+  margin-bottom: 1.5rem;
+}
+.profile-form label { display: flex; flex-direction: column; font-size: 0.875rem; font-weight: 500; }
+.profile-form input {
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+}
+.profile-info { color: var(--text-muted); font-size: 0.875rem; }
+.profile-info p { margin-bottom: 0.25rem; }
+.message { font-size: 0.875rem; color: var(--primary); }
 
 /* Admin */
 .admin-links {
@@ -226,16 +262,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   font-weight: 500;
   gap: 0.25rem;
 }
-.admin-form button {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 0.875rem;
-  background: var(--primary);
-  color: white;
-}
-.admin-form button[type="button"] { background: var(--surface); color: var(--text); }
+
 
 .admin-table {
   width: 100%;
@@ -249,21 +276,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 .admin-table th { font-weight: 600; background: var(--bg); }
 .admin-table td button {
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 0.8rem;
-  background: var(--surface);
   margin-right: 0.25rem;
-}
-.admin-table td button.danger {
-  border-color: var(--error);
-  color: var(--error);
-}
-.admin-table td button.danger:hover {
-  background: var(--error);
-  color: white;
 }
 .admin-table td select {
   padding: 0.25rem;

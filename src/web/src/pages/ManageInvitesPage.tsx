@@ -98,10 +98,10 @@ export default function ManageInvitesPage() {
               <td>
                 {!inv.usedByUserId && (
                   <>
-                    <button onClick={() => copyLink(inv.id)}>
+                    <button className="btn-sm" onClick={() => copyLink(inv.id)}>
                       {copiedId === inv.id ? 'Copied!' : 'Copy Link'}
                     </button>
-                    <button onClick={() => handleDelete(inv.id)} className="danger">Revoke</button>
+                    <button className="btn-sm btn-danger" onClick={() => handleDelete(inv.id)}>Revoke</button>
                   </>
                 )}
               </td>
