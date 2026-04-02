@@ -24,10 +24,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(() => {
     setLoading(true);
     setError(null);
-    api.getMe()
-      .then(setUser)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+
+    // Check SWA's built-in auth endpoint first (always 200, no auth required)
+    fetch('/.auth/me')
+      .then(r => r.json())
+      .then(async (authData) => {
+        if (!authData.clientPrincipal) {
+          // Not authenticated — don't call any API
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        const pendingInvite = localStorage.getItem('sic-pending-invite');
+        if (pendingInvite) {
+          localStorage.removeItem('sic-pending-invite');
+        }
+
+        try {
+          const user = pendingInvite
+            ? await api.redeemInvite(pendingInvite)
+            : await api.getMe();
+          setUser(user);
+        } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : 'Authentication failed');
+        } finally {
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        setUser(null);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(refresh, [refresh]);

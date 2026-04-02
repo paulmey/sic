@@ -19,7 +19,7 @@ public class CosmosInviteLinkRepository : CosmosRepository, IInviteLinkRepositor
     public async Task<IEnumerable<InviteLink>> GetActiveAsync()
     {
         var query = new QueryDefinition(
-            "SELECT * FROM c WHERE c.type = 'invite' AND NOT IS_DEFINED(c.usedByUserId) AND c.expiresAt > @now")
+            "SELECT * FROM c WHERE c.type = 'invite' AND IS_NULL(c.usedByUserId) AND c.expiresAt > @now")
             .WithParameter("@now", DateTimeOffset.UtcNow);
         var docs = await QueryAsync<InviteLinkDocument>(query);
         return docs.Select(Mapper.ToModel);

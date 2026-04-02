@@ -10,18 +10,26 @@ import ManageResourcesPage from './pages/ManageResourcesPage';
 import ResourceRolesPage from './pages/ResourceRolesPage';
 import ManageUsersPage from './pages/ManageUsersPage';
 import ManageInvitesPage from './pages/ManageInvitesPage';
+import InvitePage from './pages/InvitePage';
+import ProfilePage from './pages/ProfilePage';
 import './App.css';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
 
   if (loading) return <div className="loading">Loading...</div>;
-  if (!user) return <LoginPage />;
+  if (!user) return (
+    <Routes>
+      <Route path="/invite/:inviteId" element={<InvitePage />} />
+      <Route path="*" element={<LoginPage />} />
+    </Routes>
+  );
 
   return (
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<ResourcesPage />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="resources/:resourceId" element={<ResourceDetailPage />} />
         <Route path="admin" element={<AdminPage />} />
         <Route path="admin/categories" element={<ManageCategoriesPage />} />
