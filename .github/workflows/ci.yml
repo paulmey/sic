@@ -2,9 +2,9 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   build-and-test:
@@ -42,7 +42,7 @@ jobs:
         working-directory: src/web
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
