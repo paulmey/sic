@@ -226,8 +226,8 @@ export default function ResourceDetailPage() {
               <span className="booking-owner">by {b.userDisplayName ?? 'Unknown'}</span>
               {!isPast && (b.userId === user?.id || userRole?.role === 'manager') && (
                 <>
-                  <button className="btn-edit" onClick={() => handleEdit(b)}>Edit</button>
-                  <button className="btn-delete" onClick={() => handleDelete(b.id)}>Cancel</button>
+                  <button className="btn-sm" onClick={() => handleEdit(b)}>Edit</button>
+                  <button className="btn-danger btn-sm" onClick={() => handleDelete(b.id)}>Cancel</button>
                 </>
               )}
             </li>

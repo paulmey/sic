@@ -97,7 +97,7 @@ export default function ResourceRolesPage() {
                 </select>
               </td>
               <td>
-                <button onClick={() => handleRemove(role.userId)} className="danger">Remove</button>
+                <button onClick={() => handleRemove(role.userId)} className="btn-danger">Remove</button>
               </td>
             </tr>
           ))}

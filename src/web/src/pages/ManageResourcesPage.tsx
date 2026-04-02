@@ -98,7 +98,7 @@ export default function ManageResourcesPage() {
               <td>
                 <button onClick={() => startEdit(res)}>Edit</button>
                 <Link to={`/admin/resources/${res.id}/roles`}><button>Roles</button></Link>
-                <button onClick={() => handleDelete(res.id)} className="danger">Delete</button>
+                <button onClick={() => handleDelete(res.id)} className="btn-danger">Delete</button>
               </td>
             </tr>
           ))}

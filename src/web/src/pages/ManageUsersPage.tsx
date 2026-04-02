@@ -104,7 +104,7 @@ export default function ManageUsersPage() {
               ))}
               <td>
                 {u.id !== currentUser?.id && (
-                  <button onClick={() => handleDelete(u.id)} className="danger">Delete</button>
+                  <button onClick={() => handleDelete(u.id)} className="btn-danger">Delete</button>
                 )}
               </td>
             </tr>
