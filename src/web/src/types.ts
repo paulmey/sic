@@ -32,6 +32,7 @@ export interface Booking {
   startTime: string;
   endTime: string;
   createdAt: string;
+  userDisplayName?: string;
 }
 
 export interface InviteLink {

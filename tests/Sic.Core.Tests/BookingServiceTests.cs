@@ -106,7 +106,7 @@ public class BookingServiceTests
     [Fact]
     public async Task DeleteBooking_ByOwner_Succeeds()
     {
-        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId };
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId, EndTime = DateTimeOffset.UtcNow.AddDays(1) };
         _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
         _roleRepo.GetByResourceAndUserAsync(ResourceId, UserId)
             .Returns(new ResourceRole { ResourceId = ResourceId, UserId = UserId, Role = "user" });
@@ -120,7 +120,7 @@ public class BookingServiceTests
     [Fact]
     public async Task DeleteBooking_ByNonOwnerNonManager_Fails()
     {
-        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = "other-user" };
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = "other-user", EndTime = DateTimeOffset.UtcNow.AddDays(1) };
         _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
         _roleRepo.GetByResourceAndUserAsync(ResourceId, UserId)
             .Returns(new ResourceRole { ResourceId = ResourceId, UserId = UserId, Role = "user" });
@@ -134,7 +134,7 @@ public class BookingServiceTests
     [Fact]
     public async Task DeleteBooking_ByManager_Succeeds()
     {
-        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = "other-user" };
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = "other-user", EndTime = DateTimeOffset.UtcNow.AddDays(1) };
         _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
         _roleRepo.GetByResourceAndUserAsync(ResourceId, UserId)
             .Returns(new ResourceRole { ResourceId = ResourceId, UserId = UserId, Role = "manager" });
@@ -181,7 +181,7 @@ public class BookingServiceTests
     [Fact]
     public async Task UpdateBooking_Valid_Succeeds()
     {
-        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId };
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId, EndTime = DateTimeOffset.UtcNow.AddDays(1) };
         _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
         _roleRepo.GetByResourceAndUserAsync(ResourceId, UserId)
             .Returns(new ResourceRole { ResourceId = ResourceId, UserId = UserId, Role = "user" });
@@ -215,7 +215,7 @@ public class BookingServiceTests
     [Fact]
     public async Task UpdateBooking_NoPermission_Fails()
     {
-        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId };
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId, EndTime = DateTimeOffset.UtcNow.AddDays(1) };
         _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
         _roleRepo.GetByResourceAndUserAsync(ResourceId, UserId).Returns((ResourceRole?)null);
 
@@ -231,7 +231,7 @@ public class BookingServiceTests
     [Fact]
     public async Task UpdateBooking_NotOwnerNotManager_Fails()
     {
-        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = "other-user" };
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = "other-user", EndTime = DateTimeOffset.UtcNow.AddDays(1) };
         _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
         _roleRepo.GetByResourceAndUserAsync(ResourceId, UserId)
             .Returns(new ResourceRole { ResourceId = ResourceId, UserId = UserId, Role = "user" });
@@ -248,7 +248,7 @@ public class BookingServiceTests
     [Fact]
     public async Task UpdateBooking_ByManager_Succeeds()
     {
-        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = "other-user" };
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = "other-user", EndTime = DateTimeOffset.UtcNow.AddDays(1) };
         _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
         _roleRepo.GetByResourceAndUserAsync(ResourceId, UserId)
             .Returns(new ResourceRole { ResourceId = ResourceId, UserId = UserId, Role = "manager" });
@@ -266,7 +266,7 @@ public class BookingServiceTests
     [Fact]
     public async Task UpdateBooking_EndBeforeStart_Fails()
     {
-        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId };
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId, EndTime = DateTimeOffset.UtcNow.AddDays(1) };
         _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
         _roleRepo.GetByResourceAndUserAsync(ResourceId, UserId)
             .Returns(new ResourceRole { ResourceId = ResourceId, UserId = UserId, Role = "user" });
@@ -283,7 +283,7 @@ public class BookingServiceTests
     [Fact]
     public async Task UpdateBooking_TitleTooLong_Fails()
     {
-        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId };
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId, EndTime = DateTimeOffset.UtcNow.AddDays(1) };
         _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
         _roleRepo.GetByResourceAndUserAsync(ResourceId, UserId)
             .Returns(new ResourceRole { ResourceId = ResourceId, UserId = UserId, Role = "user" });
@@ -301,7 +301,7 @@ public class BookingServiceTests
     [Fact]
     public async Task UpdateBooking_Overlap_Fails()
     {
-        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId };
+        var booking = new Booking { Id = "b1", ResourceId = ResourceId, UserId = UserId, EndTime = DateTimeOffset.UtcNow.AddDays(1) };
         _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
         _roleRepo.GetByResourceAndUserAsync(ResourceId, UserId)
             .Returns(new ResourceRole { ResourceId = ResourceId, UserId = UserId, Role = "user" });
@@ -315,5 +315,44 @@ public class BookingServiceTests
 
         Assert.False(result.Success);
         Assert.Contains("overlap", result.Error!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // --- Past booking guards ---
+
+    [Fact]
+    public async Task UpdateBooking_PastBooking_Fails()
+    {
+        var booking = new Booking
+        {
+            Id = "b1", ResourceId = ResourceId, UserId = UserId,
+            Title = "Old", Description = "",
+            StartTime = DateTimeOffset.UtcNow.AddDays(-2),
+            EndTime = DateTimeOffset.UtcNow.AddDays(-1)
+        };
+        _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
+
+        var start = DateTimeOffset.UtcNow.AddHours(1);
+        var result = await _sut.UpdateBookingAsync(ResourceId, "b1", UserId, "T", "d", start, start.AddHours(1));
+
+        Assert.False(result.Success);
+        Assert.Contains("Past bookings", result.Error!);
+    }
+
+    [Fact]
+    public async Task DeleteBooking_PastBooking_Fails()
+    {
+        var booking = new Booking
+        {
+            Id = "b1", ResourceId = ResourceId, UserId = UserId,
+            Title = "Old", Description = "",
+            StartTime = DateTimeOffset.UtcNow.AddDays(-2),
+            EndTime = DateTimeOffset.UtcNow.AddDays(-1)
+        };
+        _bookingRepo.GetByIdAsync(ResourceId, "b1").Returns(booking);
+
+        var result = await _sut.DeleteBookingAsync(ResourceId, "b1", UserId);
+
+        Assert.False(result.Success);
+        Assert.Contains("Past bookings", result.Error!);
     }
 }

@@ -13,11 +13,13 @@ public class BookingFunctions
 
     private readonly BookingService _bookingService;
     private readonly IBookingRepository _bookingRepo;
+    private readonly IUserRepository _userRepo;
 
-    public BookingFunctions(BookingService bookingService, IBookingRepository bookingRepo)
+    public BookingFunctions(BookingService bookingService, IBookingRepository bookingRepo, IUserRepository userRepo)
     {
         _bookingService = bookingService;
         _bookingRepo = bookingRepo;
+        _userRepo = userRepo;
     }
 
     [Function("GetBookings")]
@@ -36,7 +38,23 @@ public class BookingFunctions
             return new BadRequestObjectResult(new { error = "Query parameters 'from' and 'to' are required (ISO 8601)." });
 
         var bookings = await _bookingRepo.GetByResourceAsync(resourceId, from, to);
-        return new OkObjectResult(bookings);
+
+        var userIds = bookings.Select(b => b.UserId).Distinct().ToList();
+        var userNames = new Dictionary<string, string>();
+        foreach (var uid in userIds)
+        {
+            var u = await _userRepo.GetByIdAsync(uid);
+            if (u is not null) userNames[uid] = u.DisplayName;
+        }
+
+        var result = bookings.Select(b => new
+        {
+            b.Id, b.ResourceId, b.UserId, b.Title, b.Description,
+            b.StartTime, b.EndTime, b.CreatedAt,
+            UserDisplayName = userNames.GetValueOrDefault(b.UserId, "Unknown")
+        });
+
+        return new OkObjectResult(result);
     }
 
     [Function("CreateBooking")]
@@ -48,12 +66,16 @@ public class BookingFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null)
+            return new UnauthorizedResult();
+
         var body = await JsonSerializer.DeserializeAsync<CreateBookingRequest>(req.Body, JsonOptions);
         if (body is null)
             return new BadRequestObjectResult(new { error = "Invalid request body." });
 
         var result = await _bookingService.CreateBookingAsync(
-            resourceId, principal.UserId, body.Title ?? "", body.Description ?? "",
+            resourceId, user.Id, body.Title ?? "", body.Description ?? "",
             body.StartTime, body.EndTime);
 
         if (!result.Success)
@@ -66,6 +88,37 @@ public class BookingFunctions
         return new CreatedResult($"/api/resources/{resourceId}/bookings/{result.Value!.Id}", result.Value);
     }
 
+    [Function("UpdateBooking")]
+    public async Task<IActionResult> UpdateBooking(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "resources/{resourceId}/bookings/{bookingId}")] HttpRequest req,
+        string resourceId, string bookingId)
+    {
+        var principal = AuthHelper.GetClientPrincipal(req);
+        if (principal is null)
+            return new UnauthorizedResult();
+
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null)
+            return new UnauthorizedResult();
+
+        var body = await JsonSerializer.DeserializeAsync<CreateBookingRequest>(req.Body, JsonOptions);
+        if (body is null)
+            return new BadRequestObjectResult(new { error = "Invalid request body." });
+
+        var result = await _bookingService.UpdateBookingAsync(
+            resourceId, bookingId, user.Id, body.Title ?? "", body.Description ?? "",
+            body.StartTime, body.EndTime);
+
+        if (!result.Success)
+        {
+            if (result.Error!.Contains("overlap", StringComparison.OrdinalIgnoreCase))
+                return new ConflictObjectResult(new { error = result.Error });
+            return new BadRequestObjectResult(new { error = result.Error });
+        }
+
+        return new OkObjectResult(result.Value);
+    }
+
     [Function("DeleteBooking")]
     public async Task<IActionResult> DeleteBooking(
         [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "resources/{resourceId}/bookings/{bookingId}")] HttpRequest req,
@@ -75,7 +128,11 @@ public class BookingFunctions
         if (principal is null)
             return new UnauthorizedResult();
 
-        var result = await _bookingService.DeleteBookingAsync(resourceId, bookingId, principal.UserId);
+        var user = await _userRepo.GetByIdentityAsync(principal.IdentityProvider, principal.UserId);
+        if (user is null)
+            return new UnauthorizedResult();
+
+        var result = await _bookingService.DeleteBookingAsync(resourceId, bookingId, user.Id);
 
         if (!result.Success)
             return new BadRequestObjectResult(new { error = result.Error });

@@ -59,6 +59,9 @@ public class BookingService
         if (booking is null)
             return ServiceResult<Booking>.Fail("Booking not found.");
 
+        if (booking.EndTime <= DateTimeOffset.UtcNow)
+            return ServiceResult<Booking>.Fail("Past bookings cannot be modified.");
+
         var role = await _roleRepo.GetByResourceAndUserAsync(resourceId, userId);
         if (role is null)
             return ServiceResult<Booking>.Fail("No permission for this resource.");
@@ -93,6 +96,9 @@ public class BookingService
         var booking = await _bookingRepo.GetByIdAsync(resourceId, bookingId);
         if (booking is null)
             return ServiceResult.Fail("Booking not found.");
+
+        if (booking.EndTime <= DateTimeOffset.UtcNow)
+            return ServiceResult.Fail("Past bookings cannot be deleted.");
 
         var role = await _roleRepo.GetByResourceAndUserAsync(resourceId, userId);
         if (role is null)
