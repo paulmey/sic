@@ -161,7 +161,7 @@ public class UserServiceTests
 
         Assert.True(result.Success);
         await _roleRepo.Received(1).CreateAsync(Arg.Is<ResourceRole>(r =>
-            r.ResourceId == "res-1" && r.UserId == result.Value!.Id && r.Role == "user"));
+            r.ResourceId == "res-1" && r.UserId == result.Value!.Id && r.Role == ResourceRoles.User));
     }
 
     [Fact]
