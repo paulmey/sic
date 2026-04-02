@@ -81,7 +81,7 @@ public class UserService
                 Id = Guid.NewGuid().ToString(),
                 ResourceId = invite.ResourceId,
                 UserId = user.Id,
-                Role = "user"
+                Role = ResourceRoles.User
             };
             await _roleRepo.CreateAsync(role);
         }

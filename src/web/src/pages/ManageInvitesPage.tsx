@@ -16,7 +16,9 @@ export default function ManageInvitesPage() {
 
   useEffect(() => {
     load();
-    api.getResources().then(setResources).catch(console.error);
+    api.getResources().then(setResources).catch((e: unknown) =>
+      setError(e instanceof Error ? e.message : 'Failed to load resources')
+    );
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {

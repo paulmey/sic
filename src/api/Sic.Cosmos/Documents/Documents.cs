@@ -91,6 +91,9 @@ public class InviteLinkDocument : CosmosDocument
     [JsonPropertyName("createdByUserId")]
     public string CreatedByUserId { get; set; } = string.Empty;
 
+    [JsonPropertyName("resourceId")]
+    public string? ResourceId { get; set; }
+
     [JsonPropertyName("expiresAt")]
     public DateTimeOffset ExpiresAt { get; set; }
 

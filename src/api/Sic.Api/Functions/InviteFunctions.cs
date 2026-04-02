@@ -41,6 +41,9 @@ public class InviteFunctions
 
         var body = await JsonSerializer.DeserializeAsync<CreateInviteRequest>(req.Body, JsonOptions);
 
+        if (!string.IsNullOrWhiteSpace(body?.ResourceId) && !user.AppRoles.Contains(AppRoles.ResourceAdmin))
+            return new StatusCodeResult(403);
+
         var validityDays = body?.ValidityDays ?? 7;
         var result = await _inviteService.CreateInviteAsync(principal.UserId, TimeSpan.FromDays(validityDays), body?.ResourceId);
 

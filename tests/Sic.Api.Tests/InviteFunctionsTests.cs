@@ -61,6 +61,34 @@ public class InviteFunctionsTests
     }
 
     [Fact]
+    public async Task CreateInvite_WithResourceId_WithoutResourceAdmin_Returns403()
+    {
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(_adminUser);
+        var req = TestHelper.CreateRequest(body: new { validityDays = 7, resourceId = "res-1" });
+
+        var result = await _sut.CreateInvite(req);
+
+        Assert.IsType<StatusCodeResult>(result);
+        Assert.Equal(403, ((StatusCodeResult)result).StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateInvite_WithResourceId_WithResourceAdmin_Returns201()
+    {
+        var adminWithResource = new User
+        {
+            Id = "u1", IdentityProvider = "microsoft", IdentityId = "user-1",
+            DisplayName = "Admin", AppRoles = new List<string> { AppRoles.UserAdmin, AppRoles.ResourceAdmin }
+        };
+        _userRepo.GetByIdentityAsync("microsoft", "user-1").Returns(adminWithResource);
+        var req = TestHelper.CreateRequest(body: new { validityDays = 7, resourceId = "res-1" });
+
+        var result = await _sut.CreateInvite(req);
+
+        Assert.IsType<CreatedResult>(result);
+    }
+
+    [Fact]
     public async Task GetInvites_WithoutAuth_Returns401()
     {
         var req = TestHelper.CreateAnonymousRequest();
