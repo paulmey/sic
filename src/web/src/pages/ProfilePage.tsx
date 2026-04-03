@@ -48,7 +48,7 @@ export default function ProfilePage() {
         <p><strong>Identity Provider:</strong> {user.identityProvider}</p>
         <p><strong>Member since:</strong> {new Date(user.createdAt).toLocaleDateString()}</p>
       </div>
-      <a href="/.auth/logout" className="btn btn-danger" style={{ marginTop: '2rem', display: 'inline-block' }}>Sign out</a>
+      <a href="/.auth/logout" className="btn btn-danger sign-out">Sign out</a>
     </div>
   );
 }
