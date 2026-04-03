@@ -14,10 +14,7 @@ export default function Layout() {
             <Link to="/admin">Admin</Link>
           )}
           {user && (
-            <>
-              <Link to="/profile" className="user-name">{user.displayName}</Link>
-              <a href="/.auth/logout">Sign out</a>
-            </>
+            <Link to="/profile" className="user-name">{user.displayName}</Link>
           )}
         </nav>
       </header>
